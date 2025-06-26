@@ -101,6 +101,48 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     toast.success('All API keys cleared');
   };
 
+  const testAPI = async () => {
+    toast.loading('Testing API connection...', { id: 'api-test' });
+    
+    try {
+      // Test with a simple request
+      const testKey = apiKeys.openrouter || apiKeys.gemini;
+      if (!testKey) {
+        throw new Error('No API key available for testing');
+      }
+
+      if (apiKeys.openrouter) {
+        // Test OpenRouter
+        const response = await fetch('https://openrouter.ai/api/v1/models', {
+          headers: {
+            'Authorization': `Bearer ${apiKeys.openrouter}`,
+            'HTTP-Referer': 'https://creaticon.app',
+            'X-Title': 'Creaticon - API Test'
+          }
+        });
+        
+        if (response.ok) {
+          toast.success('OpenRouter API connected successfully!', { id: 'api-test' });
+        } else {
+          throw new Error(`OpenRouter API error: ${response.status}`);
+        }
+      } else if (apiKeys.gemini) {
+        // Test Gemini (just check if key format is valid)
+        if (apiKeys.gemini.startsWith('AI')) {
+          toast.success('Gemini API key format looks valid!', { id: 'api-test' });
+        } else {
+          throw new Error('Invalid Gemini API key format');
+        }
+      }
+    } catch (error) {
+      console.error('API test error:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'API test failed', 
+        { id: 'api-test' }
+      );
+    }
+  };
+
   const providers = [
     {
       key: 'openrouter' as keyof APIKeys,
@@ -262,20 +304,32 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   </div>
                 ))}
 
-                <div className="flex gap-2 pt-3">
-                  <Button onClick={saveKeys} size="sm" className="flex-1 text-xs">
-                    <Save className="w-3 h-3 mr-1" />
-                    Save
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={clearAllKeys}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
+              <div className="flex gap-2 pt-3">
+                <Button onClick={saveKeys} size="sm" className="flex-1 text-xs">
+                  <Save className="w-3 h-3 mr-1" />
+                  Save
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={clearAllKeys}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+              
+              <div className="pt-3 border-t border-border">
+                <Button 
+                  onClick={testAPI}
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full text-xs"
+                  disabled={!apiKeys.openrouter && !apiKeys.gemini}
+                >
+                  🧪 Test API Connection
+                </Button>
+              </div>
               </CardContent>
             </Card>
             

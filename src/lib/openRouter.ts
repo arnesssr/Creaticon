@@ -49,13 +49,33 @@ export interface OpenRouterStreamChunk {
   }>;
 }
 
+// Helper function to get API key from environment or localStorage
+const getOpenRouterApiKey = (): string | null => {
+  // First try environment variable
+  const envKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+  if (envKey) return envKey;
+  
+  // Then try localStorage
+  try {
+    const savedKeys = localStorage.getItem('creaticon_api_keys');
+    if (savedKeys) {
+      const parsed = JSON.parse(savedKeys);
+      return parsed.openrouter || null;
+    }
+  } catch (error) {
+    console.error('Failed to parse saved API keys:', error);
+  }
+  
+  return null;
+};
+
 // DeepSeek V3 icon generation with OpenRouter
 export const generateIconsWithOpenRouter = async (input: GenerationRequest): Promise<GenerationResponse> => {
   try {
-    const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+    const apiKey = getOpenRouterApiKey();
     
     if (!apiKey) {
-      throw new Error('OpenRouter API key not provided');
+      throw new Error('Please add your OpenRouter API key in Settings to use this feature');
     }
 
     console.log('🚀 Generating icons with DeepSeek V3 through OpenRouter...');
@@ -166,10 +186,10 @@ export const generateIconsWithOpenRouter = async (input: GenerationRequest): Pro
 // DeepSeek V3 UI generation with OpenRouter
 export const generateUIWithOpenRouter = async (input: GenerationRequest): Promise<GenerationResponse> => {
   try {
-    const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+    const apiKey = getOpenRouterApiKey();
     
     if (!apiKey) {
-      throw new Error('OpenRouter API key not provided');
+      throw new Error('Please add your OpenRouter API key in Settings to use this feature');
     }
 
     console.log('🚀 Generating UI with DeepSeek V3 through OpenRouter...');
