@@ -1,54 +1,42 @@
 
-import { NextApiRequest, NextApiResponse } from 'next';
 import JSZip from 'jszip';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+export interface DownloadData {
+  html: string;
+  css: string;
+  javascript: string;
+  icons: Array<{
+    name: string;
+    svg: string;
+  }>;
+}
+
+export const createZipDownload = async (data: DownloadData): Promise<Blob> => {
+  const zip = new JSZip();
+  
+  // Add main files
+  if (data.html) zip.file('index.html', data.html);
+  if (data.css) zip.file('styles.css', data.css);
+  if (data.javascript) zip.file('script.js', data.javascript);
+  
+  // Add icons folder
+  if (data.icons && data.icons.length > 0) {
+    const iconsFolder = zip.folder('icons');
+    data.icons.forEach((icon: any) => {
+      iconsFolder?.file(`${icon.name}.svg`, icon.svg);
+    });
   }
-
-  try {
-    const { type, data } = req.body;
-
-    if (type === 'single-file') {
-      const { filename, content, mimeType } = data;
-      
-      res.setHeader('Content-Type', mimeType);
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      return res.send(content);
-    }
-
-    if (type === 'zip') {
-      const { html, css, javascript, icons } = data;
-      
-      const zip = new JSZip();
-      
-      // Add main files
-      if (html) zip.file('index.html', html);
-      if (css) zip.file('styles.css', css);
-      if (javascript) zip.file('script.js', javascript);
-      
-      // Add icons folder
-      if (icons && icons.length > 0) {
-        const iconsFolder = zip.folder('icons');
-        icons.forEach((icon: any) => {
-          iconsFolder?.file(`${icon.name}.svg`, icon.svg);
-        });
-      }
-      
-      // Add README
-      const readme = `# Generated UI Project
+  
+  // Add README
+  const readme = `# Generated UI Project
 
 This project was generated using the AI UI Generator.
 
 ## Files included:
 - index.html - Main HTML file
-${css ? '- styles.css - CSS styles' : ''}
-${javascript ? '- script.js - JavaScript functionality' : ''}
-${icons?.length ? `- icons/ - ${icons.length} custom SVG icons` : ''}
+${data.css ? '- styles.css - CSS styles' : ''}
+${data.javascript ? '- script.js - JavaScript functionality' : ''}
+${data.icons?.length ? `- icons/ - ${data.icons.length} custom SVG icons` : ''}
 
 ## Usage:
 1. Open index.html in your browser
@@ -57,20 +45,23 @@ ${icons?.length ? `- icons/ - ${icons.length} custom SVG icons` : ''}
 
 Generated on: ${new Date().toISOString()}
 `;
-      
-      zip.file('README.md', readme);
-      
-      const zipContent = await zip.generateAsync({ type: 'nodebuffer' });
-      
-      res.setHeader('Content-Type', 'application/zip');
-      res.setHeader('Content-Disposition', 'attachment; filename="ui-project.zip"');
-      return res.send(zipContent);
-    }
+  
+  zip.file('README.md', readme);
+  
+  const zipContent = await zip.generateAsync({ type: 'blob' });
+  return zipContent;
+};
 
-    return res.status(400).json({ error: 'Invalid download type' });
-
-  } catch (error) {
-    console.error('Download API Error:', error);
-    return res.status(500).json({ error: 'Failed to create download' });
-  }
-}
+export const downloadFile = (content: string, filename: string, mimeType: string) => {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  URL.revokeObjectURL(url);
+};

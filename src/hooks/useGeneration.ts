@@ -1,6 +1,6 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { generateAPI } from '@/api/generate';
 
 export interface GenerationInput {
   projectDescription: string;
@@ -53,16 +53,8 @@ export const useGeneration = () => {
         await new Promise(resolve => setTimeout(resolve, 500));
       }
 
-      // Make API call
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(input),
-      });
-
-      const data = await response.json();
+      // Use the new API function
+      const data = await generateAPI(input);
 
       if (!data.success) {
         throw new Error(data.error || 'Generation failed');
@@ -72,10 +64,10 @@ export const useGeneration = () => {
       setProgress(100);
 
       setResult({
-        html: data.data.html,
-        css: data.data.css,
-        javascript: data.data.javascript,
-        icons: data.data.icons
+        html: data.data!.html,
+        css: data.data!.css,
+        javascript: data.data!.javascript,
+        icons: data.data!.icons
       });
 
       toast.success('UI generated successfully!');

@@ -81,7 +81,7 @@ export const extractSVGIcons = (html: string): ExtractedIcon[] => {
   return icons;
 };
 
-const determineIconName = ($svg: cheerio.Cheerio<cheerio.Element>, index: number): string => {
+const determineIconName = ($svg: cheerio.Cheerio<any>, index: number): string => {
   // Try to find name from nearby text or attributes
   const nearbyText = $svg.parent().text().trim();
   const className = $svg.attr('class') || '';
@@ -100,7 +100,7 @@ const determineIconName = ($svg: cheerio.Cheerio<cheerio.Element>, index: number
   return defaultNames[index % defaultNames.length] || `icon-${index + 1}`;
 };
 
-const determineIconCategory = ($svg: cheerio.Cheerio<cheerio.Element>): string => {
+const determineIconCategory = ($svg: cheerio.Cheerio<any>): string => {
   const context = $svg.closest('nav, header, footer, .navigation, .menu').length > 0 ? 'navigation' :
                  $svg.closest('form, .form, .input').length > 0 ? 'form' :
                  $svg.closest('.social, .contact').length > 0 ? 'social' :
