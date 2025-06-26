@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { generateAPI } from '@/api/generate';
+import { generateAPI, GenerateRequest } from '@/api/generate';
+import { AIProvider } from '@/lib/aiService';
 
 export interface GenerationInput {
   projectDescription: string;
   projectType: string;
   stylePreference: string;
   colorScheme?: string;
+  provider?: AIProvider;
 }
 
 export interface GenerationResult {
@@ -40,6 +42,7 @@ export const useGeneration = () => {
       // Simulate progress steps
       const steps = [
         'Analyzing project requirements...',
+        'Selecting AI provider...',
         'Generating UI structure...',
         'Creating custom styles...',
         'Adding interactive elements...',
@@ -49,12 +52,12 @@ export const useGeneration = () => {
 
       for (let i = 0; i < steps.length - 1; i++) {
         toast.info(steps[i]);
-        setProgress((i + 1) * 15);
+        setProgress((i + 1) * 14);
         await new Promise(resolve => setTimeout(resolve, 500));
       }
 
-      // Use the new API function
-      const data = await generateAPI(input);
+      // Use the updated API function with provider support
+      const data = await generateAPI(input as GenerateRequest);
 
       if (!data.success) {
         throw new Error(data.error || 'Generation failed');

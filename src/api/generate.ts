@@ -1,7 +1,11 @@
 
 import { GenerationRequest } from '@/lib/gemini';
-import { generateUIWithGemini } from '@/lib/gemini';
+import { generateUIWithAI, AIProvider } from '@/lib/aiService';
 import { processGeneratedHTML } from '@/lib/processors';
+
+export interface GenerateRequest extends GenerationRequest {
+  provider?: AIProvider;
+}
 
 export interface GenerateResponse {
   success: boolean;
@@ -15,7 +19,7 @@ export interface GenerateResponse {
   error?: string;
 }
 
-export const generateAPI = async (input: GenerationRequest): Promise<GenerateResponse> => {
+export const generateAPI = async (input: GenerateRequest): Promise<GenerateResponse> => {
   try {
     // Validate input
     if (!input.projectDescription || input.projectDescription.trim().length < 10) {
@@ -25,19 +29,25 @@ export const generateAPI = async (input: GenerationRequest): Promise<GenerateRes
       };
     }
 
-    // Generate UI with Gemini
-    console.log('Generating UI for:', input.projectDescription);
-    const geminiResponse = await generateUIWithGemini(input);
+    // Use auto provider by default
+    const provider = input.provider || 'auto';
 
-    if (!geminiResponse.success) {
+    // Generate UI with selected AI provider
+    console.log('Generating UI for:', input.projectDescription, 'using provider:', provider);
+    const aiResponse = await generateUIWithAI({
+      ...input,
+      provider
+    });
+
+    if (!aiResponse.success) {
       return { 
         success: false, 
-        error: geminiResponse.error || 'Failed to generate UI' 
+        error: aiResponse.error || 'Failed to generate UI' 
       };
     }
 
     // Process the generated HTML
-    const processedCode = processGeneratedHTML(geminiResponse.html);
+    const processedCode = processGeneratedHTML(aiResponse.html);
 
     return {
       success: true,

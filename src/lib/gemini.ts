@@ -1,3 +1,4 @@
+
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
@@ -7,6 +8,7 @@ export interface GenerationRequest {
   projectType: string;
   stylePreference: string;
   colorScheme?: string;
+  provider?: 'gemini' | 'huggingface';
 }
 
 export interface GenerationResponse {
@@ -17,7 +19,8 @@ export interface GenerationResponse {
 
 export const generateUIWithGemini = async (input: GenerationRequest): Promise<GenerationResponse> => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    // Use gemini-1.5-flash for free tier instead of gemini-pro
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     const prompt = createUIGenerationPrompt(input);
     
@@ -37,7 +40,62 @@ export const generateUIWithGemini = async (input: GenerationRequest): Promise<Ge
     return {
       html: '',
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to generate UI'
+      error: error instanceof Error ? error.message : 'Failed to generate UI with Gemini'
+    };
+  }
+};
+
+export const generateUIWithHuggingFace = async (input: GenerationRequest): Promise<GenerationResponse> => {
+  try {
+    const apiKey = import.meta.env.VITE_HUGGINGFACE_API_KEY;
+    
+    if (!apiKey) {
+      throw new Error('Hugging Face API key not provided');
+    }
+
+    const prompt = createUIGenerationPrompt(input);
+    
+    const response = await fetch('https://api-inference.huggingface.co/models/microsoft/DialoGPT-large', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: prompt,
+        parameters: {
+          max_length: 4000,
+          temperature: 0.7,
+          return_full_text: false
+        }
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Hugging Face API error: ${response.status}`);
+    }
+
+    const result = await response.json();
+    let generatedHTML = '';
+    
+    if (Array.isArray(result) && result[0]?.generated_text) {
+      generatedHTML = result[0].generated_text;
+    } else {
+      throw new Error('Invalid response format from Hugging Face');
+    }
+
+    const cleanHTML = cleanGeneratedHTML(generatedHTML);
+
+    return {
+      html: cleanHTML,
+      success: true
+    };
+  } catch (error) {
+    console.error('Hugging Face API Error:', error);
+    return {
+      html: '',
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to generate UI with Hugging Face'
     };
   }
 };

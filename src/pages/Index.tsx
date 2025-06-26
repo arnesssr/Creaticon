@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Upload, Eye } from "lucide-react";
+import { Upload, Eye, Cpu } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PreviewPanel } from "@/components/generator/PreviewPanel";
@@ -16,21 +15,25 @@ import { IconGallery } from "@/components/generator/IconGallery";
 import { CodeDisplay } from "@/components/generator/CodeDisplay";
 import { DownloadPanel } from "@/components/generator/DownloadPanel";
 import { useGeneration } from "@/hooks/useGeneration";
+import { getAvailableProviders, AIProvider } from "@/lib/aiService";
 
 const Index = () => {
   const [projectDescription, setProjectDescription] = useState("");
   const [projectType, setProjectType] = useState("");
   const [stylePreference, setStylePreference] = useState("");
   const [colorScheme, setColorScheme] = useState("");
+  const [selectedProvider, setSelectedProvider] = useState<AIProvider>('auto');
 
   const { generateUI, isGenerating, progress, result } = useGeneration();
+  const availableProviders = getAvailableProviders();
 
   const handleGenerate = () => {
     generateUI({
       projectDescription,
       projectType,
       stylePreference,
-      colorScheme
+      colorScheme,
+      provider: selectedProvider
     });
   };
 
@@ -112,6 +115,30 @@ const Index = () => {
                   onChange={(e) => setColorScheme(e.target.value)}
                   className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">AI Provider</label>
+                <Select value={selectedProvider} onValueChange={(value: AIProvider) => setSelectedProvider(value)}>
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                    <SelectValue placeholder="Select AI provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableProviders.map((provider) => (
+                      <SelectItem key={provider.provider} value={provider.provider} disabled={!provider.available}>
+                        <div className="flex items-center gap-2">
+                          <Cpu className="h-4 w-4" />
+                          {provider.name}
+                          {!provider.available && (
+                            <Badge variant="secondary" className="text-xs">
+                              API Key Required
+                            </Badge>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {isGenerating && (
