@@ -37,24 +37,6 @@ export interface GenerationResponse {
   error?: string;
 }
 
-// Generation State Interface
-export interface GenerationState {
-  isLoading: boolean;
-  generatedCode: ProcessedCode | null;
-  error: string | null;
-  userInput: UserInput | null;
-  setLoading: (loading: boolean) => void;
-  setGeneratedCode: (code: ProcessedCode | null) => void;
-  setError: (error: string | null) => void;
-  setUserInput: (input: UserInput) => void;
-  reset: () => void;
-}
-
-// Download State Interface
-export interface DownloadState {
-  isDownloading: boolean;
-  setDownloading: (downloading: boolean) => void;
-}
 
 // Preview State Interface
 export interface PreviewState {

@@ -1,45 +1,53 @@
 import React, { useState } from 'react';
-import { useGenerationStore } from '@/stores/generationStore';
 import ChatInterface from '@/components/generator/ChatInterface';
 import ResultsDisplay from '@/components/generator/ResultsDisplay';
+import { SimpleThemeToggle } from '@/components/ui/theme-toggle';
 import { Toaster } from 'react-hot-toast';
+import { ProcessedCode } from '@/types';
 
 const Generator = () => {
-  const { generatedCode, error, isLoading } = useGenerationStore();
   const [generationType, setGenerationType] = useState<'icons' | 'ui'>('icons');
+  const [generatedCode, setGeneratedCode] = useState<ProcessedCode | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   
-  // Debug loading state
-  console.log('🔍 Generator render - isLoading:', isLoading, 'generatedCode:', !!generatedCode, 'error:', error);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Toaster 
         position="top-right"
         toastOptions={{
           duration: 4000,
           style: {
-            background: '#1f2937',
-            color: '#fff',
-            border: '1px solid #374151',
+            background: 'hsl(var(--card))',
+            color: 'hsl(var(--card-foreground))',
+            border: '1px solid hsl(var(--border))',
           },
         }}
       />
       
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            AI Generator
-          </h1>
-          <p className="text-gray-600">
-            Generate beautiful UI components and icon packs with AI
-          </p>
+        {/* Header with Theme Toggle */}
+        <div className="flex justify-between items-start mb-8">
+          <div className="text-center flex-1">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Creaticon
+            </h1>
+            <p className="text-muted-foreground">
+              Generate beautiful UI components and icon packs with AI
+            </p>
+          </div>
+          <div className="ml-4">
+            <SimpleThemeToggle />
+          </div>
         </div>
 
         {/* Chat Interface */}
         <ChatInterface 
           generationType={generationType}
           setGenerationType={setGenerationType}
+          setGeneratedCode={setGeneratedCode}
+          setError={setError}
         />
 
         {/* Results Display */}

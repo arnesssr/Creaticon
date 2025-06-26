@@ -3,8 +3,10 @@ import { ExtractedIcon } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Download, Package, Share, MoreVertical, Copy, Palette, Image } from 'lucide-react';
 import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
+import ConversionDialog from '@/components/ui/ConversionDialog';
 import toast from 'react-hot-toast';
 
 interface IconResultsProps {
@@ -62,31 +64,33 @@ const IconResults: React.FC<IconResultsProps> = ({ icons }) => {
   return (
     <div className="space-y-6">
       {/* Header with actions */}
-      <div className="bg-white rounded-lg border p-4">
+      <div className="bg-card rounded-lg border border-border p-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-foreground">
               Generated Icon Pack ({icons.length} icons)
             </h3>
-            <p className="text-gray-600 text-sm">Beautiful, customizable SVG icons</p>
+            <p className="text-muted-foreground text-sm">Beautiful, customizable SVG icons</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button onClick={downloadAllIcons} variant="outline">
-              📦 Download All
+              <Package className="w-4 h-4 mr-2" />
+              Download All
             </Button>
             <Button onClick={shareIconPack} variant="outline">
-              🔗 Share Pack
+              <Share className="w-4 h-4 mr-2" />
+              Share Pack
             </Button>
           </div>
         </div>
       </div>
 
       {/* Color and Size customization */}
-      <div className="bg-white rounded-lg border p-4">
+      <div className="bg-card rounded-lg border border-border p-4">
         <div className="space-y-4">
           {/* Color customization */}
           <div className="flex flex-wrap items-center gap-4">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-foreground">
               Preview Color:
             </label>
             <Input
@@ -95,7 +99,7 @@ const IconResults: React.FC<IconResultsProps> = ({ icons }) => {
               onChange={(e) => setSelectedColor(e.target.value)}
               className="w-16 h-8 p-1 border-2 rounded cursor-pointer"
             />
-            <span className="text-sm text-gray-600 font-mono">{selectedColor}</span>
+            <span className="text-sm text-muted-foreground font-mono">{selectedColor}</span>
             
             {/* Preset colors */}
             <div className="flex gap-2">
@@ -104,7 +108,7 @@ const IconResults: React.FC<IconResultsProps> = ({ icons }) => {
                   key={color}
                   onClick={() => setSelectedColor(color)}
                   className={`w-6 h-6 rounded-full border-2 ${
-                    selectedColor === color ? 'border-gray-800 scale-110' : 'border-gray-300'
+                    selectedColor === color ? 'border-foreground scale-110' : 'border-border'
                   } transition-all hover:scale-110`}
                   style={{ backgroundColor: color }}
                   title={color}
@@ -115,7 +119,7 @@ const IconResults: React.FC<IconResultsProps> = ({ icons }) => {
           
           {/* Size customization */}
           <div className="flex flex-wrap items-center gap-4">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-foreground">
               Preview Size:
             </label>
             <div className="flex gap-2">
@@ -125,15 +129,15 @@ const IconResults: React.FC<IconResultsProps> = ({ icons }) => {
                   onClick={() => setSelectedSize(size)}
                   className={`px-3 py-1 text-xs rounded border ${
                     selectedSize === size 
-                      ? 'bg-blue-500 text-white border-blue-500' 
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
+                      ? 'bg-primary text-primary-foreground border-primary' 
+                      : 'bg-background text-foreground border-border hover:border-primary/50'
                   } transition-colors`}
                 >
                   {size}px
                 </button>
               ))}
             </div>
-            <span className="text-sm text-gray-600">Current: {selectedSize}px</span>
+            <span className="text-sm text-muted-foreground">Current: {selectedSize}px</span>
           </div>
         </div>
       </div>
@@ -141,9 +145,9 @@ const IconResults: React.FC<IconResultsProps> = ({ icons }) => {
       {/* Icons grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {icons.map((icon) => (
-          <div key={icon.id} className="bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <div key={icon.id} className="bg-card border border-border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             {/* Icon preview */}
-            <div className="p-6 flex items-center justify-center bg-gray-50" style={{ height: `${Math.max(selectedSize + 32, 80)}px` }}>
+            <div className="p-6 flex items-center justify-center bg-muted/30" style={{ height: `${Math.max(selectedSize + 32, 80)}px` }}>
               <div 
                 className="flex items-center justify-center"
                 style={{ width: `${selectedSize}px`, height: `${selectedSize}px` }}
@@ -155,7 +159,7 @@ const IconResults: React.FC<IconResultsProps> = ({ icons }) => {
             
             {/* Icon info and actions */}
             <div className="p-3">
-              <p className="text-sm font-medium text-gray-900 mb-2 truncate">
+              <p className="text-sm font-medium text-foreground mb-2 truncate">
                 {icon.name}
               </p>
               <div className="flex gap-1">
@@ -164,12 +168,13 @@ const IconResults: React.FC<IconResultsProps> = ({ icons }) => {
                   size="sm"
                   className="flex-1 text-xs"
                 >
-                  💾 Download
+                  <Download className="w-3 h-3 mr-1" />
+                  Download
                 </Button>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="sm" className="px-2">
-                      ⋮
+                      <MoreVertical className="w-3 h-3" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-48 p-2">
@@ -180,6 +185,7 @@ const IconResults: React.FC<IconResultsProps> = ({ icons }) => {
                         size="sm" 
                         className="w-full justify-start text-xs"
                       >
+                        <Download className="w-3 h-3 mr-2" />
                         Download Original
                       </Button>
                       <Button 
@@ -191,8 +197,22 @@ const IconResults: React.FC<IconResultsProps> = ({ icons }) => {
                         size="sm" 
                         className="w-full justify-start text-xs"
                       >
+                        <Copy className="w-3 h-3 mr-2" />
                         Copy SVG Code
                       </Button>
+                      <ConversionDialog 
+                        svgContent={icon.svg}
+                        iconName={icon.name}
+                      >
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="w-full justify-start text-xs"
+                        >
+                          <Image className="w-3 h-3 mr-2" />
+                          Convert to PNG/JPG
+                        </Button>
+                      </ConversionDialog>
                     </div>
                   </PopoverContent>
                 </Popover>

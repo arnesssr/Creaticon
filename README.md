@@ -1,73 +1,150 @@
-# AI-UI Craft Project 🎨
+# Creaticon 🎨
 
-## Project Overview
+## Overview
 
-AI-UI Craft is an advanced AI-powered tool for generating complete web projects, including multi-page UIs and custom SVG logos. Transform your ideas into beautiful, functional user interfaces with just a description!
+Creaticon is a powerful AI-driven tool for generating beautiful UI components and icon packs. Simply describe what you want, and our AI will create professional-quality designs ready for download and use in your projects.
 
 ### ✨ Key Features
 
-- **🚀 Complete Project Generation**: Generate entire multi-page websites with navigation
-- **🎯 Custom SVG Logo Creation**: AI-generated logos in multiple variants and formats
-- **📱 Single Page UI Generation**: Create individual pages with custom styling
-- **🎨 Multiple Design Styles**: Modern, minimal, corporate, creative, and glassmorphism
-- **🔧 Multiple AI Providers**: Support for Google Gemini and Hugging Face
-- **📥 Download & Export**: Download HTML, CSS, SVG logos, and complete projects
-- **👀 Live Preview**: Real-time preview of generated UIs
-- **🎭 Icon Extraction**: Automatically extract and categorize SVG icons
+#### 🎨 Icon Generation
+- **AI-Powered Icon Creation**: Generate custom SVG icon packs from descriptions
+- **Multiple Formats**: Convert SVG icons to PNG, JPG, WebP, and ICO formats
+- **Size Flexibility**: Generate icons in multiple sizes (16px to 512px)
+- **Color Customization**: Preview and download icons in any color
+- **Bulk Export**: Download complete icon packs as ZIP files
+- **Professional Quality**: Vector-based SVG icons with clean, scalable designs
 
-## How can I edit this code?
+#### 🖼️ UI Component Generation
+- **Component Creation**: Generate complete UI components from descriptions
+- **Live Preview**: Real-time preview with iframe rendering
+- **Multi-Format Export**: Download HTML, CSS, and JavaScript separately
+- **Complete Packages**: Get organized ZIP files with all assets
+- **Modern Styling**: Generated with Tailwind CSS and modern web standards
 
-There are several ways of editing your application.
+#### 🔧 Advanced Features
+- **Format Conversion**: Convert SVG icons to multiple image formats
+- **Custom Sizing**: Support for custom icon sizes up to 2048px
+- **Quality Control**: Adjustable compression for JPG/WebP formats
+- **Background Colors**: Customizable backgrounds for non-transparent formats
+- **Batch Processing**: Convert multiple formats and sizes simultaneously
+- **Smart Loading**: Real-time loading animations during generation
 
-**Use your preferred IDE**
+## 🚀 Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js (v16 or higher)
+- npm or yarn
 
-Follow these steps:
+### Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
+# Clone the repository
+git clone https://github.com/your-username/creaticon.git
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Navigate to the project directory
+cd creaticon
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Environment Setup
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Create a `.env` file in the root directory and add your AI provider API keys:
 
-## Technologies Used
+```env
+# OpenRouter API Key (for DeepSeek V3)
+VITE_OPENROUTER_API_KEY=your_openrouter_api_key
 
-This project uses:
+# Google Gemini API Key
+VITE_GEMINI_API_KEY=your_gemini_api_key
 
-- Vite
-- TypeScript
-- React
-- GSAP (for animations)
-- Tailwind CSS
+# Hugging Face API Key
+VITE_HUGGINGFACE_API_KEY=your_huggingface_api_key
+```
 
-## Deployment
+## 📱 Usage
 
-To deploy this project, configure your hosting setup manually or use automated deployment through CI/CD pipelines.
+1. **Choose Generation Type**: Select between Icon Pack or UI Component
+2. **Describe Your Vision**: Enter a detailed description of what you want to create
+3. **Generate**: Click send and watch the AI create your designs
+4. **Customize**: Adjust colors, sizes, and preview your creations
+5. **Download**: Export individual files or complete packages
 
-## What technologies are used for this project?
+### Icon Generation Examples
 
-This project is built with:
+```
+"Create a set of e-commerce icons including shopping cart, heart, user profile, search, and payment icons in a modern flat style"
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+"Design minimalist social media icons for Facebook, Twitter, Instagram, LinkedIn, and YouTube with rounded corners"
+```
+
+### UI Component Examples
+
+```
+"Create a modern login form with gradient background, social login buttons, and smooth animations"
+
+"Design a dashboard card showing user statistics with charts and modern styling"
+```
+
+## 🛠️ Technologies
+
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, shadcn/ui components
+- **AI Integration**: OpenRouter (DeepSeek V3), Google Gemini, Hugging Face
+- **File Processing**: JSZip, File-Saver, Canvas API
+- **Animations**: CSS animations, React transitions
+- **Format Support**: SVG, PNG, JPG, WebP, ICO
+
+## 🎯 Features in Detail
+
+### Icon Conversion
+- **Multiple Formats**: Convert SVG to PNG, JPG, WebP, ICO
+- **Flexible Sizing**: Any size from 16px to 2048px
+- **Quality Control**: Adjustable compression for lossy formats
+- **Batch Export**: Generate multiple formats/sizes simultaneously
+- **Custom Colors**: Preview and export in any color scheme
+
+### UI Components
+- **Live Preview**: Real-time iframe rendering
+- **Complete Export**: HTML, CSS, JavaScript files
+- **Modern Standards**: Tailwind CSS, responsive design
+- **Package Downloads**: Organized ZIP files with documentation
+
+## 🚀 Deployment
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+### Deploy to Vercel
+
+```bash
+npm install -g vercel
+vercel
+```
+
+### Deploy to Netlify
+
+1. Build the project: `npm run build`
+2. Upload the `dist` folder to Netlify
+3. Configure environment variables in Netlify dashboard
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 

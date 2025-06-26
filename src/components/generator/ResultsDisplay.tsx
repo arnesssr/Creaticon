@@ -1,6 +1,5 @@
 import React from 'react';
 import { ProcessedCode } from '@/types';
-import LoadingDisplay from './LoadingDisplay';
 import IconResults from './IconResults';
 import UIResults from './UIResults';
 
@@ -19,16 +18,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 }) => {
   console.log('🎯 ResultsDisplay render - isLoading:', isLoading, 'generationType:', generationType);
   
+  // Loading is now handled directly in ChatInterface
   if (isLoading) {
-    console.log('✨ Showing LoadingDisplay');
-    return <LoadingDisplay generationType={generationType} />;
+    return null;
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <div className="text-red-600 text-lg font-medium mb-2">❌ Generation Failed</div>
-        <p className="text-red-700">{error}</p>
+      <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center">
+        <div className="text-destructive text-lg font-medium mb-2">❌ Generation Failed</div>
+        <p className="text-destructive/80">{error}</p>
       </div>
     );
   }
