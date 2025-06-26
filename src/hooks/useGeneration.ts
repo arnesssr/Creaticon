@@ -15,6 +15,18 @@ export interface GenerationResult {
   html: string;
   css: string;
   javascript: string;
+  pages: Array<{
+    name: string;
+    path: string;
+    html: string;
+    description: string;
+  }>;
+  logos: Array<{
+    name: string;
+    svg: string;
+    description: string;
+    variants: string[];
+  }>;
   icons: Array<{
     id: string;
     name: string;
@@ -70,6 +82,8 @@ export const useGeneration = () => {
         html: data.data!.html,
         css: data.data!.css,
         javascript: data.data!.javascript,
+        pages: data.data!.pages || [],
+        logos: data.data!.logos || [],
         icons: data.data!.icons
       });
 

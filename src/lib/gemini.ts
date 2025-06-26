@@ -3,6 +3,30 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
+export interface PageDefinition {
+  name: string;
+  path: string;
+  html: string;
+  description: string;
+}
+
+export interface LogoDefinition {
+  name: string;
+  svg: string;
+  description: string;
+  variants: string[];
+}
+
+export interface CompleteProjectGeneration {
+  mainPage: string;
+  pages: PageDefinition[];
+  logos: LogoDefinition[];
+  globalCSS: string;
+  globalJS: string;
+  success: boolean;
+  error?: string;
+}
+
 export interface GenerationRequest {
   projectDescription: string;
   projectType: string;
@@ -13,6 +37,10 @@ export interface GenerationRequest {
 
 export interface GenerationResponse {
   html: string;
+  css?: string;
+  javascript?: string;
+  pages?: Array<{name: string; path: string; html: string; description: string;}>;
+  logos?: Array<{name: string; svg: string; description: string; variants: string[];}>;
   success: boolean;
   error?: string;
 }
@@ -144,6 +172,189 @@ IMPORTANT:
 `;
 };
 
+// New function for generating complete multi-page projects with SVG logos
+export const generateCompleteProject = async (input: GenerationRequest): Promise<CompleteProjectGeneration> => {
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+    // First, generate the project structure
+    const structurePrompt = createProjectStructurePrompt(input);
+    const structureResult = await model.generateContent(structurePrompt);
+    const structureResponse = await structureResult.response;
+    const projectStructure = JSON.parse(cleanJSONResponse(structureResponse.text()));
+
+    // Generate SVG logos
+    const logoPrompt = createLogoGenerationPrompt(input);
+    const logoResult = await model.generateContent(logoPrompt);
+    const logoResponse = await logoResult.response;
+    const logos = JSON.parse(cleanJSONResponse(logoResponse.text()));
+
+    // Generate each page
+    const pages: PageDefinition[] = [];
+    let mainPage = '';
+
+    for (const pageInfo of projectStructure.pages) {
+      const pagePrompt = createPageGenerationPrompt(input, pageInfo, logos.logos);
+      const pageResult = await model.generateContent(pagePrompt);
+      const pageResponse = await pageResult.response;
+      const pageHTML = cleanGeneratedHTML(pageResponse.text());
+
+      const page: PageDefinition = {
+        name: pageInfo.name,
+        path: pageInfo.path,
+        html: pageHTML,
+        description: pageInfo.description
+      };
+
+      pages.push(page);
+      
+      if (pageInfo.isMain) {
+        mainPage = pageHTML;
+      }
+    }
+
+    // Generate global CSS and JS
+    const globalStylesPrompt = createGlobalStylesPrompt(input, projectStructure);
+    const globalStylesResult = await model.generateContent(globalStylesPrompt);
+    const globalStylesResponse = await globalStylesResult.response;
+    const globalStyles = cleanCodeResponse(globalStylesResponse.text(), 'css');
+
+    return {
+      mainPage: mainPage || pages[0]?.html || '',
+      pages,
+      logos: logos.logos,
+      globalCSS: globalStyles,
+      globalJS: '',
+      success: true
+    };
+
+  } catch (error) {
+    console.error('Complete project generation error:', error);
+    return {
+      mainPage: '',
+      pages: [],
+      logos: [],
+      globalCSS: '',
+      globalJS: '',
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to generate complete project'
+    };
+  }
+};
+
+const createProjectStructurePrompt = (input: GenerationRequest): string => {
+  return `
+Create a JSON structure for a complete ${input.projectType} project: "${input.projectDescription}"
+
+Return a JSON object with this exact structure:
+{
+  "pages": [
+    {
+      "name": "Home",
+      "path": "/",
+      "description": "Main landing page",
+      "isMain": true
+    },
+    {
+      "name": "About",
+      "path": "/about",
+      "description": "About page",
+      "isMain": false
+    }
+    // Add 3-7 more relevant pages for this project type
+  ]
+}
+
+For ${input.projectType}, include pages that make sense for: ${input.projectDescription}
+
+Return ONLY the JSON, no explanations.
+`;
+};
+
+const createLogoGenerationPrompt = (input: GenerationRequest): string => {
+  return `
+Create SVG logos for: "${input.projectDescription}"
+
+Return a JSON object with this exact structure:
+{
+  "logos": [
+    {
+      "name": "Main Logo",
+      "svg": "<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'><!-- Complete SVG content --></svg>",
+      "description": "Primary brand logo",
+      "variants": ["horizontal", "icon-only", "white-version"]
+    },
+    {
+      "name": "Icon Logo",
+      "svg": "<svg viewBox='0 0 50 50' xmlns='http://www.w3.org/2000/svg'><!-- Complete SVG content --></svg>",
+      "description": "Compact icon version",
+      "variants": ["small", "favicon"]
+    }
+    // Add 2-3 more logo variations
+  ]
+}
+
+Design requirements:
+- Style: ${input.stylePreference}
+- Colors: ${input.colorScheme || 'professional blue and purple'}
+- Related to: ${input.projectDescription}
+- Each SVG must be complete and valid
+- Use appropriate viewBox dimensions
+- Include gradients, shapes, and professional styling
+
+Return ONLY the JSON, no explanations.
+`;
+};
+
+const createPageGenerationPrompt = (input: GenerationRequest, pageInfo: any, logos: any[]): string => {
+  const logoSVGs = logos.map(logo => logo.svg).join('\\n');
+  
+  return `
+Create a complete HTML page for: ${pageInfo.name} (${pageInfo.description})
+Project: "${input.projectDescription}"
+
+Page Requirements:
+- Type: ${input.projectType}
+- Style: ${input.stylePreference}
+- Colors: ${input.colorScheme || 'professional blue and purple'}
+- Purpose: ${pageInfo.description}
+
+Available logos to use:
+${logoSVGs}
+
+Structure:
+1. Complete HTML5 document with DOCTYPE
+2. Embedded CSS in <style> tags
+3. Embedded JavaScript in <script> tags
+4. Use the provided logos appropriately
+5. Include navigation to other pages
+6. Responsive design
+7. Interactive elements
+8. Professional ${input.stylePreference} styling
+
+Return ONLY the complete HTML code, starting with <!DOCTYPE html>
+`;
+};
+
+const createGlobalStylesPrompt = (input: GenerationRequest, structure: any): string => {
+  return `
+Create global CSS styles for the ${input.projectType} project: "${input.projectDescription}"
+
+Include:
+- CSS variables for consistent theming
+- Typography styles
+- Color palette based on: ${input.colorScheme || 'professional blue and purple'}
+- Responsive breakpoints
+- Animation keyframes
+- Utility classes
+- Component base styles
+
+Style: ${input.stylePreference}
+
+Return ONLY the CSS code, no explanations or markdown.
+`;
+};
+
 const cleanGeneratedHTML = (html: string): string => {
   // Remove any markdown formatting if present
   let cleaned = html.replace(/```html\n?/g, '').replace(/```\n?/g, '');
@@ -157,4 +368,26 @@ const cleanGeneratedHTML = (html: string): string => {
   cleaned = cleaned.trim();
   
   return cleaned;
+};
+
+const cleanJSONResponse = (response: string): string => {
+  // Remove markdown formatting
+  let cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+  
+  // Find JSON object boundaries
+  const start = cleaned.indexOf('{');
+  const end = cleaned.lastIndexOf('}');
+  
+  if (start !== -1 && end !== -1) {
+    cleaned = cleaned.substring(start, end + 1);
+  }
+  
+  return cleaned.trim();
+};
+
+const cleanCodeResponse = (response: string, type: 'css' | 'js'): string => {
+  // Remove markdown formatting
+  let cleaned = response.replace(new RegExp(`\`\`\`${type}\\n?`, 'g'), '').replace(/```\n?/g, '');
+  
+  return cleaned.trim();
 };

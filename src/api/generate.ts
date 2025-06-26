@@ -13,6 +13,8 @@ export interface GenerateResponse {
     html: string;
     css: string;
     javascript: string;
+    pages: Array<{name: string; path: string; html: string; description: string;}>;
+    logos: Array<{name: string; svg: string; description: string; variants: string[];}>;
     icons: any[];
     preview: string;
   };
@@ -55,6 +57,8 @@ export const generateAPI = async (input: GenerateRequest): Promise<GenerateRespo
         html: processedCode.html,
         css: processedCode.css,
         javascript: processedCode.javascript,
+        pages: aiResponse.pages || [],
+        logos: aiResponse.logos || [],
         icons: processedCode.icons,
         preview: processedCode.preview
       }

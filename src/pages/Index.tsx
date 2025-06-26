@@ -12,9 +12,12 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PreviewPanel } from "@/components/generator/PreviewPanel";
 import { IconGallery } from "@/components/generator/IconGallery";
+import { LogoGallery } from "@/components/generator/LogoGallery";
+import { PageGallery } from "@/components/generator/PageGallery";
 import { CodeDisplay } from "@/components/generator/CodeDisplay";
 import { DownloadPanel } from "@/components/generator/DownloadPanel";
 import { useGeneration } from "@/hooks/useGeneration";
+import { useProjectGeneration } from "@/hooks/useProjectGeneration";
 import { getAvailableProviders, AIProvider } from "@/lib/aiService";
 
 const Index = () => {
@@ -25,17 +28,31 @@ const Index = () => {
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>('auto');
 
   const { generateUI, isGenerating, progress, result } = useGeneration();
+  const { generateProject, isGenerating: isGeneratingProject, progress: projectProgress, result: projectResult } = useProjectGeneration();
   const availableProviders = getAvailableProviders();
+  const [generationMode, setGenerationMode] = useState<'single' | 'complete'>('single');
 
   const handleGenerate = () => {
-    generateUI({
-      projectDescription,
-      projectType,
-      stylePreference,
-      colorScheme,
-      provider: selectedProvider
-    });
+    if (generationMode === 'complete') {
+      generateProject({
+        projectDescription,
+        projectType,
+        stylePreference,
+        colorScheme
+      });
+    } else {
+      generateUI({
+        projectDescription,
+        projectType,
+        stylePreference,
+        colorScheme,
+        provider: selectedProvider
+      });
+    }
   };
+
+  const currentIsGenerating = generationMode === 'complete' ? isGeneratingProject : isGenerating;
+  const currentProgress = generationMode === 'complete' ? projectProgress : progress;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
@@ -118,6 +135,19 @@ const Index = () => {
               </div>
 
               <div>
+                <label className="block text-sm font-medium mb-2">Generation Mode</label>
+                <Select value={generationMode} onValueChange={(value: 'single' | 'complete') => setGenerationMode(value)}>
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                    <SelectValue placeholder="Select generation mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="single">Single Page UI</SelectItem>
+                    <SelectItem value="complete">Complete Project (Multi-page + Logos)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium mb-2">AI Provider</label>
                 <Select value={selectedProvider} onValueChange={(value: AIProvider) => setSelectedProvider(value)}>
                   <SelectTrigger className="bg-white/10 border-white/20 text-white">
@@ -141,22 +171,22 @@ const Index = () => {
                 </Select>
               </div>
 
-              {isGenerating && (
+              {currentIsGenerating && (
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Generating...</span>
-                    <span>{progress}%</span>
+                    <span>Generating {generationMode === 'complete' ? 'Complete Project' : 'UI'}...</span>
+                    <span>{currentProgress}%</span>
                   </div>
-                  <Progress value={progress} className="h-2" />
+                  <Progress value={currentProgress} className="h-2" />
                 </div>
               )}
 
               <Button
                 onClick={handleGenerate}
-                disabled={isGenerating || !projectDescription.trim()}
+                disabled={currentIsGenerating || !projectDescription.trim()}
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3"
               >
-                {isGenerating ? "Generating..." : "Generate UI & Icons"}
+                {currentIsGenerating ? "Generating..." : (generationMode === 'complete' ? "Generate Complete Project" : "Generate UI & Icons")}
               </Button>
             </CardContent>
           </Card>
@@ -176,7 +206,7 @@ const Index = () => {
         </div>
 
         {/* Results Section */}
-        {result && (
+        {result && generationMode === 'single' && (
           <div className="mt-12 space-y-8">
             <Tabs defaultValue="icons" className="w-full">
               <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-lg">
@@ -208,6 +238,95 @@ const Index = () => {
 
               <TabsContent value="download">
                 <DownloadPanel generatedResult={result} />
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
+
+        {/* Complete Project Results Section */}
+        {projectResult && generationMode === 'complete' && (
+          <div className="mt-12 space-y-8">
+            <Tabs defaultValue="pages" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-lg">
+                <TabsTrigger value="pages" className="text-white data-[state=active]:bg-white/20">
+                  Pages ({projectResult.pages.length})
+                </TabsTrigger>
+                <TabsTrigger value="logos" className="text-white data-[state=active]:bg-white/20">
+                  Logos ({projectResult.logos.length})
+                </TabsTrigger>
+                <TabsTrigger value="styles" className="text-white data-[state=active]:bg-white/20">
+                  Global Styles
+                </TabsTrigger>
+                <TabsTrigger value="download" className="text-white data-[state=active]:bg-white/20">
+                  Download Project
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="pages">
+                <PageGallery pages={projectResult.pages} />
+              </TabsContent>
+
+              <TabsContent value="logos">
+                <LogoGallery logos={projectResult.logos} />
+              </TabsContent>
+
+              <TabsContent value="styles">
+                <CodeDisplay code={projectResult.globalCSS} language="css" />
+              </TabsContent>
+
+              <TabsContent value="download">
+                <Card className="backdrop-blur-lg bg-white/10 border-white/20">
+                  <CardHeader>
+                    <CardTitle className="text-white">Download Complete Project</CardTitle>
+                    <CardDescription className="text-gray-300">
+                      Download all pages, logos, and assets as a complete project
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Button 
+                        onClick={() => {
+                          // Download all pages
+                          projectResult.pages.forEach(page => {
+                            const fileName = `${page.name.toLowerCase().replace(/\s+/g, '-')}.html`;
+                            const blob = new Blob([page.html], { type: 'text/html' });
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = fileName;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                          });
+                        }}
+                        className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                      >
+                        Download All Pages
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          // Download all logos
+                          projectResult.logos.forEach(logo => {
+                            const fileName = `${logo.name.toLowerCase().replace(/\s+/g, '-')}.svg`;
+                            const blob = new Blob([logo.svg], { type: 'image/svg+xml' });
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = fileName;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                          });
+                        }}
+                        className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white"
+                      >
+                        Download All Logos
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
             </Tabs>
           </div>
