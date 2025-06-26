@@ -1,24 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { Upload, Eye, Cpu } from "lucide-react";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { PreviewPanel } from "@/components/generator/PreviewPanel";
-import { IconGallery } from "@/components/generator/IconGallery";
-import { LogoGallery } from "@/components/generator/LogoGallery";
-import { PageGallery } from "@/components/generator/PageGallery";
-import { CodeDisplay } from "@/components/generator/CodeDisplay";
-import { DownloadPanel } from "@/components/generator/DownloadPanel";
-import { useGeneration } from "@/hooks/useGeneration";
-import { useProjectGeneration } from "@/hooks/useProjectGeneration";
-import { getAvailableProviders, AIProvider } from "@/lib/aiService";
+import LandingPage from "@/components/landing/LandingPage";
+import GeneratorApp from "@/components/generator/GeneratorApp";
 
 const Index = () => {
   const [projectDescription, setProjectDescription] = useState("");

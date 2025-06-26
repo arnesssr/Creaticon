@@ -1,18 +1,23 @@
-# Welcome to your Lovable project
+# AI-UI Craft Project 🎨
 
-## Project info
+## Project Overview
 
-**URL**: https://lovable.dev/projects/78f2caaf-b987-4dac-9e4a-d3d2a219c424
+AI-UI Craft is an advanced AI-powered tool for generating complete web projects, including multi-page UIs and custom SVG logos. Transform your ideas into beautiful, functional user interfaces with just a description!
+
+### ✨ Key Features
+
+- **🚀 Complete Project Generation**: Generate entire multi-page websites with navigation
+- **🎯 Custom SVG Logo Creation**: AI-generated logos in multiple variants and formats
+- **📱 Single Page UI Generation**: Create individual pages with custom styling
+- **🎨 Multiple Design Styles**: Modern, minimal, corporate, creative, and glassmorphism
+- **🔧 Multiple AI Providers**: Support for Google Gemini and Hugging Face
+- **📥 Download & Export**: Download HTML, CSS, SVG logos, and complete projects
+- **👀 Live Preview**: Real-time preview of generated UIs
+- **🎭 Icon Extraction**: Automatically extract and categorize SVG icons
 
 ## How can I edit this code?
 
 There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/78f2caaf-b987-4dac-9e4a-d3d2a219c424) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
 
 **Use your preferred IDE**
 
@@ -42,13 +47,19 @@ npm run dev
 - Click the "Edit" button (pencil icon) at the top right of the file view.
 - Make your changes and commit the changes.
 
-**Use GitHub Codespaces**
+## Technologies Used
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+This project uses:
+
+- Vite
+- TypeScript
+- React
+- GSAP (for animations)
+- Tailwind CSS
+
+## Deployment
+
+To deploy this project, configure your hosting setup manually or use automated deployment through CI/CD pipelines.
 
 ## What technologies are used for this project?
 
@@ -60,14 +71,3 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/78f2caaf-b987-4dac-9e4a-d3d2a219c424) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)

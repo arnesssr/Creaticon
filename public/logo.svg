@@ -1,0 +1,56 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10B981;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="90" fill="url(#grad1)" opacity="0.1"/>
+  
+  <!-- Main design elements -->
+  <!-- AI Brain representation -->
+  <path d="M70 60 Q100 40 130 60 Q140 100 130 140 Q100 160 70 140 Q60 100 70 60" fill="url(#grad1)" opacity="0.8" filter="url(#glow)"/>
+  
+  <!-- UI Elements -->
+  <!-- Rectangle representing UI component -->
+  <rect x="45" y="80" width="40" height="25" rx="4" fill="url(#grad2)" opacity="0.9"/>
+  <rect x="115" y="80" width="40" height="25" rx="4" fill="url(#grad2)" opacity="0.9"/>
+  
+  <!-- Design tools -->
+  <circle cx="100" cy="65" r="8" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="100" cy="65" r="4" fill="url(#grad1)"/>
+  
+  <!-- Sparkle effects -->
+  <g transform="translate(120, 50)">
+    <path d="M0,-8 L2,0 L8,0 L2,2 L0,8 L-2,2 L-8,0 L-2,0 Z" fill="#FFD700" opacity="0.8"/>
+  </g>
+  <g transform="translate(80, 45) scale(0.6)">
+    <path d="M0,-8 L2,0 L8,0 L2,2 L0,8 L-2,2 L-8,0 L-2,0 Z" fill="#FFD700" opacity="0.6"/>
+  </g>
+  <g transform="translate(140, 120) scale(0.8)">
+    <path d="M0,-8 L2,0 L8,0 L2,2 L0,8 L-2,2 L-8,0 L-2,0 Z" fill="#FFD700" opacity="0.7"/>
+  </g>
+  
+  <!-- Connection lines -->
+  <line x1="70" y1="92" x2="100" y2="92" stroke="url(#grad1)" stroke-width="2" opacity="0.6"/>
+  <line x1="100" y1="92" x2="130" y2="92" stroke="url(#grad1)" stroke-width="2" opacity="0.6"/>
+  
+  <!-- Central spark -->
+  <circle cx="100" cy="92" r="3" fill="#FFFFFF"/>
+  
+  <!-- Text elements (small) -->
+  <text x="100" y="170" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="url(#grad1)">AI-UI CRAFT</text>
+</svg>
