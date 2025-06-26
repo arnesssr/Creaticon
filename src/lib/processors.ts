@@ -1,25 +1,7 @@
 
 import * as cheerio from 'cheerio';
-
-export interface ExtractedIcon {
-  id: string;
-  name: string;
-  svg: string;
-  category: string;
-  viewBox?: string;
-  size: {
-    width: number;
-    height: number;
-  };
-}
-
-export interface ProcessedCode {
-  html: string;
-  css: string;
-  javascript: string;
-  icons: ExtractedIcon[];
-  preview: string;
-}
+import DOMPurify from 'dompurify';
+import { ExtractedIcon, ProcessedCode } from '@/types';
 
 export const processGeneratedHTML = (html: string): ProcessedCode => {
   const $ = cheerio.load(html);
@@ -42,43 +24,41 @@ export const processGeneratedHTML = (html: string): ProcessedCode => {
     html: html, // Keep original for preview
     css: cssContent,
     javascript: jsContent,
-    icons: icons,
+    svgIcons: icons,
+    icons: icons, // For backward compatibility
     preview: html
   };
 };
 
+// SVG extraction logic according to plan specifications
 export const extractSVGIcons = (html: string): ExtractedIcon[] => {
   const $ = cheerio.load(html);
   const svgElements = $('svg');
-  const icons: ExtractedIcon[] = [];
   
-  svgElements.each((index, element) => {
+  return svgElements.map((index, element) => {
     const $svg = $(element);
     const svgString = $.html($svg);
     
-    if (svgString) {
-      const viewBox = $svg.attr('viewBox') || '0 0 24 24';
-      const [, , width, height] = viewBox.split(' ').map(Number);
-      
-      // Try to determine icon name from context
-      const iconName = determineIconName($svg, index);
-      const category = determineIconCategory($svg);
-      
-      icons.push({
-        id: `icon-${index + 1}`,
-        name: iconName,
-        svg: svgString,
-        category: category,
-        viewBox: viewBox,
-        size: {
-          width: width || 24,
-          height: height || 24
-        }
-      });
-    }
-  });
-  
-  return icons;
+    return {
+      id: `icon-${index}`,
+      name: $svg.attr('data-name') || `icon-${index}`,
+      svg: svgString,
+      usage: $svg.closest('[class]').attr('class') || 'general',
+      size: calculateSVGSize(svgString)
+    };
+  }).get();
+};
+
+// Calculate SVG size according to plan
+const calculateSVGSize = (svgString: string): number => {
+  const sizeMatch = svgString.match(/viewBox=["']([^"']+)["']/);
+  if (sizeMatch) {
+    const viewBox = sizeMatch[1].split(' ');
+    const width = parseInt(viewBox[2]) || 24;
+    const height = parseInt(viewBox[3]) || 24;
+    return Math.max(width, height);
+  }
+  return 24;
 };
 
 const determineIconName = ($svg: cheerio.Cheerio<any>, index: number): string => {

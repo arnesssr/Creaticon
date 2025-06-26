@@ -1,4 +1,4 @@
-# AI-UI Craft Documentation
+# 🎨 Creaticon - AI Icon & UI Creation Studio
 
 ## Table of Contents
 1. [Project Overview](#project-overview)
@@ -16,10 +16,10 @@
 
 ## Project Overview
 
-AI-UI Craft is a powerful web application that leverages artificial intelligence to generate beautiful, customizable UI components and icons. The platform provides designers and developers with an intuitive interface to create, modify, and download high-quality UI assets.
+**Creaticon** is the ultimate AI-powered icon and UI creation studio that transforms creative ideas into stunning digital assets. Leveraging cutting-edge AI models including DeepSeek V3 and advanced reasoning engines, Creaticon delivers professional-grade design assets with unmatched quality and speed.
 
 ### Mission
-To democratize UI design by providing AI-powered tools that generate beautiful, customizable interface elements that can be seamlessly integrated into any project.
+To revolutionize digital design by providing the most advanced AI-powered creation tools that transform ideas into beautiful, professional-grade icons and UI components that elevate every project.
 
 ### Key Objectives
 - Generate high-quality UI components and icons using AI
