@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import ChatInterface from '@/components/generator/ChatInterface';
 import ResultsDisplay from '@/components/generator/ResultsDisplay';
-import { SimpleThemeToggle } from '@/components/ui/theme-toggle';
+import Sidebar from '@/components/ui/Sidebar';
+import { Button } from '@/components/ui/button';
+import { Menu } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { ProcessedCode } from '@/types';
 
@@ -10,6 +12,7 @@ const Generator = () => {
   const [generatedCode, setGeneratedCode] = useState<ProcessedCode | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
 
   return (
@@ -26,20 +29,34 @@ const Generator = () => {
         }}
       />
       
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Header with Theme Toggle */}
-        <div className="flex justify-between items-start mb-8">
-          <div className="text-center flex-1">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Creaticon
-            </h1>
-            <p className="text-muted-foreground">
-              Generate beautiful UI components and icon packs with AI
-            </p>
-          </div>
-          <div className="ml-4">
-            <SimpleThemeToggle />
-          </div>
+      {/* Top Menu Bar */}
+      <div className="fixed top-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
+        <div className="flex items-center justify-between px-4 py-3">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setIsSidebarOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Menu className="w-4 h-4" />
+            Menu
+          </Button>
+          <h1 className="text-lg font-semibold text-foreground">
+            Creaticon
+          </h1>
+          <div className="w-16"></div> {/* Spacer for balance */}
+        </div>
+      </div>
+      
+      <div className="max-w-4xl mx-auto px-4 pt-20 pb-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            AI-Powered Design Studio
+          </h1>
+          <p className="text-muted-foreground">
+            Generate beautiful UI components and icon packs with AI
+          </p>
         </div>
 
         {/* Chat Interface */}
@@ -60,6 +77,12 @@ const Generator = () => {
           />
         )}
       </div>
+      
+      {/* Sidebar */}
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+      />
     </div>
   );
 };

@@ -84,7 +84,61 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenera
       }
     } catch (error) {
       console.error('Generation error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      let errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      
+      // Handle specific error types
+      if (errorMessage.includes('429')) {
+        errorMessage = 'Please use your own API key for better performance and unlimited access. You can add your keys in the settings.';
+        toast.error('Please add your own API keys for unlimited access', { duration: 4000 });
+        
+        // Try fallback to Gemini after a short delay
+        setTimeout(async () => {
+          try {
+            console.log('🔄 Trying fallback provider (Gemini)...');
+            let fallbackResponse;
+            
+            if (generationType === 'icons') {
+              fallbackResponse = await generateIconsWithAI({
+                projectDescription: input,
+                projectType: 'icon-pack',
+                stylePreference: 'modern',
+                colorScheme: 'contextual and beautiful gradients',
+                provider: 'gemini' // Use Gemini as fallback
+              });
+            } else {
+              fallbackResponse = await generateUIWithAI({
+                projectDescription: input,
+                projectType: 'web-app',
+                stylePreference: 'modern',
+                colorScheme: 'professional blue and purple gradients',
+                provider: 'gemini' // Use Gemini as fallback
+              });
+            }
+            
+            if (fallbackResponse.success && fallbackResponse.html) {
+              const processedCode = processGeneratedHTML(fallbackResponse.html);
+              setGeneratedCode(processedCode);
+              toast.success('✅ Generated successfully with fallback provider!');
+            } else {
+              setError('All AI providers are currently unavailable. Please try again later.');
+              toast.error('All providers unavailable');
+            }
+          } catch (fallbackError) {
+            console.error('Fallback generation error:', fallbackError);
+            setError('All AI providers are currently unavailable. Please try again later.');
+            toast.error('All providers unavailable');
+          } finally {
+            setIsLocalLoading(false);
+          }
+        }, 2000);
+        
+        return; // Don't set loading to false yet, fallback is running
+      } else if (errorMessage.includes('401') || errorMessage.includes('403')) {
+        errorMessage = 'API authentication failed. Please check your API keys in the environment variables.';
+      } else if (errorMessage.includes('500')) {
+        errorMessage = 'AI service is temporarily unavailable. Please try again in a few moments.';
+      }
+      
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -152,6 +206,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenera
         
         <div className="text-xs text-muted-foreground mt-2">
           Press Enter to send, Shift+Enter for new line
+          <br />
+          <span className="text-blue-600 dark:text-blue-400">
+            💡 For better results use: Claude 3.5 Sonnet, GPT-4o, Gemini Pro, or DeepSeek V3
+          </span>
         </div>
 
         {/* Loading Animation - Show directly here when generating */}
