@@ -5,11 +5,12 @@ import Sidebar from '@/components/ui/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
-import { ProcessedCode } from '@/types';
+import { ProcessedCode, ReactComponent } from '@/types';
 
 const Generator = () => {
-  const [generationType, setGenerationType] = useState<'icons' | 'ui'>('icons');
+  const [generationType, setGenerationType] = useState<'icons' | 'react-component'>('icons');
   const [generatedCode, setGeneratedCode] = useState<ProcessedCode | null>(null);
+  const [reactComponent, setReactComponent] = useState<ReactComponent | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -41,10 +42,32 @@ const Generator = () => {
             <Menu className="w-4 h-4" />
             Menu
           </Button>
+          
+          {/* Generation Type Selector */}
+          <div className="flex items-center gap-4">
+            <Button
+              variant={generationType === 'icons' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setGenerationType('icons')}
+              className="flex items-center gap-2"
+            >
+              <div className="text-lg">🎨</div>
+              Icons
+            </Button>
+            <Button
+              variant={generationType === 'react-component' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setGenerationType('react-component')}
+              className="flex items-center gap-2"
+            >
+              <div className="text-lg">⚛️</div>
+              Components
+            </Button>
+          </div>
+          
           <h1 className="text-lg font-semibold text-foreground">
             Creaticon
           </h1>
-          <div className="w-16"></div> {/* Spacer for balance */}
         </div>
       </div>
       
@@ -64,15 +87,18 @@ const Generator = () => {
           generationType={generationType}
           setGenerationType={setGenerationType}
           setGeneratedCode={setGeneratedCode}
+          setReactComponent={setReactComponent}
           setError={setError}
+          setIsLoading={setIsLoading}
         />
 
         {/* Results Display */}
-        {(generatedCode || isLoading || error) && (
+        {(generatedCode || reactComponent || isLoading || error) && (
           <ResultsDisplay 
             generationType={generationType}
             isLoading={isLoading}
             generatedCode={generatedCode}
+            reactComponent={reactComponent}
             error={error}
           />
         )}

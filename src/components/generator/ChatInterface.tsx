@@ -3,22 +3,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Palette, Layout, Send } from 'lucide-react';
-import { generateAPI } from '@/api/generate';
-import { generateIconsWithAI, generateUIWithAI } from '@/lib/aiService';
-import { processGeneratedHTML } from '@/lib/processors';
-import { generateIntelligentIconPack } from '@/lib/iconGeneration';
+import { generateIconsWithAI } from '@/lib/aiService';
+import { generateReactComponentWithAI } from '@/lib/aiServices';
+import { processIconHTML } from '@/lib/processors';
 import Spinner from '../ui/Spinner';
 import toast from 'react-hot-toast';
-import { ProcessedCode } from '@/types';
+import { ProcessedCode, GenerationResult, ReactComponent } from '@/types';
+import { ComponentGenerationRequest } from '@/types/react-components';
 
 interface ChatInterfaceProps {
-  generationType: 'icons' | 'ui';
-  setGenerationType: (type: 'icons' | 'ui') => void;
+  generationType: 'icons' | 'react-component';
+  setGenerationType: (type: 'icons' | 'react-component') => void;
   setGeneratedCode: (code: ProcessedCode | null) => void;
   setError: (error: string | null) => void;
+  setReactComponent?: (component: ReactComponent | null) => void;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenerationType, setGeneratedCode, setError }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenerationType, setGeneratedCode, setError, setReactComponent }) => {
   const [input, setInput] = useState('');
   const [isLocalLoading, setIsLocalLoading] = useState(false);
 
@@ -52,34 +53,42 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenera
         console.log('✅ Icon Generation Response:', response);
 
         if (response.success && response.html) {
-          const processedCode = processGeneratedHTML(response.html);
+          const processedCode = processIconHTML(response.html);
           setGeneratedCode(processedCode);
           toast.success(`🎨 ${processedCode.svgIcons.length} beautiful icons generated!`);
         } else {
           setError(response.error || 'Failed to generate icons');
           toast.error(response.error || 'Failed to generate icons');
         }
-      } else {
-        // Use OpenRouter DeepSeek V3 for UI generation
-        console.log('🖼️ Using DeepSeek V3 for UI generation...');
+      } else if (generationType === 'react-component') {
+        // Use AI for React component generation
+        console.log('⚛️ Using AI for React component generation...');
         
-        const response = await generateUIWithAI({
-          projectDescription: input,
-          projectType: 'web-app',
-          stylePreference: 'modern',
-          colorScheme: 'professional blue and purple gradients',
-          provider: 'auto' // Use best available provider
-        });
-
-        console.log('✅ UI Generation Response:', response);
-
-        if (response.success && response.html) {
-          const processedCode = processGeneratedHTML(response.html);
-          setGeneratedCode(processedCode);
-          toast.success('🖼️ Beautiful UI component generated!');
+        const componentRequest: ComponentGenerationRequest = {
+          description: input,
+          framework: 'react-typescript',
+          styling: 'tailwind',
+          responsive: true,
+          accessibility: true,
+          complexity: 'medium'
+        };
+        
+        const response = await generateReactComponentWithAI(componentRequest);
+        
+        console.log('✅ React Component Generation Response:', response);
+        
+        if (response.success && response.component) {
+          // Set the React component data directly
+          if (setReactComponent) {
+            setReactComponent(response.component);
+          }
+          
+          // Clear any previous generated code since we're using React components now
+          setGeneratedCode(null);
+          toast.success('⚛️ React component generated!');
         } else {
-          setError(response.error || 'Failed to generate UI');
-          toast.error(response.error || 'Failed to generate UI');
+          setError(response.error || 'Failed to generate React component');
+          toast.error(response.error || 'Failed to generate React component');
         }
       }
     } catch (error) {
@@ -105,20 +114,31 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenera
                 colorScheme: 'contextual and beautiful gradients',
                 provider: 'gemini' // Use Gemini as fallback
               });
-            } else {
-              fallbackResponse = await generateUIWithAI({
-                projectDescription: input,
-                projectType: 'web-app',
-                stylePreference: 'modern',
-                colorScheme: 'professional blue and purple gradients',
-                provider: 'gemini' // Use Gemini as fallback
-              });
+            } else if (generationType === 'react-component') {
+              const componentRequest: ComponentGenerationRequest = {
+                description: input,
+                framework: 'react-typescript',
+                styling: 'tailwind',
+                responsive: true,
+                accessibility: true,
+                complexity: 'medium'
+              };
+              
+              fallbackResponse = await generateReactComponentWithAI(componentRequest);
             }
             
-            if (fallbackResponse.success && fallbackResponse.html) {
-              const processedCode = processGeneratedHTML(fallbackResponse.html);
-              setGeneratedCode(processedCode);
-              toast.success('✅ Generated successfully with fallback provider!');
+            if (fallbackResponse.success) {
+              if (generationType === 'icons' && fallbackResponse.html) {
+                const processedCode = processIconHTML(fallbackResponse.html);
+                setGeneratedCode(processedCode);
+                toast.success('✅ Icons generated successfully with fallback provider!');
+              } else if (generationType === 'react-component' && fallbackResponse.component) {
+                if (setReactComponent) {
+                  setReactComponent(fallbackResponse.component);
+                }
+                setGeneratedCode(null);
+                toast.success('✅ React component generated successfully with fallback provider!');
+              }
             } else {
               setError('All AI providers are currently unavailable. Please try again later.');
               toast.error('All providers unavailable');
@@ -156,33 +176,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenera
   return (
     <div className="bg-card shadow-lg rounded-2xl border border-border mb-6">
       <div className="p-6">
-        {/* Type selector */}
+        {/* Type display - now controlled by top menu */}
         <div className="mb-4">
-          <label className="text-sm font-medium text-foreground mb-2 block">
-            What would you like to generate?
-          </label>
-          <Select
-            value={generationType}
-            onValueChange={(value: 'icons' | 'ui') => setGenerationType(value)}
-          >
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="icons">
-                <div className="flex items-center gap-2">
-                  <Palette className="h-4 w-4" />
-                  Icon Pack
-                </div>
-              </SelectItem>
-              <SelectItem value="ui">
-                <div className="flex items-center gap-2">
-                  <Layout className="h-4 w-4" />
-                  UI Component
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            {generationType === 'icons' ? (
+              <>
+                <Palette className="h-4 w-4" />
+                Creating Icon Pack
+              </>
+            ) : (
+              <>
+                <Layout className="h-4 w-4" />
+                Creating React Component
+              </>
+            )}
+          </div>
         </div>
 
         {/* Input with send button */}
@@ -220,12 +228,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenera
             </div>
             <div className="text-center">
               <h3 className="text-lg font-semibold text-foreground mb-2">
-                {generationType === 'icons' ? '🎨 Generating Icons...' : '🖼️ Creating UI Component...'}
+                {generationType === 'icons' ? '🎨 Generating Icons...' : '⚛️ Creating React Component...'}
               </h3>
               <p className="text-muted-foreground">
                 {generationType === 'icons' 
                   ? 'Crafting beautiful SVG icons for your project...' 
-                  : 'Building your custom UI component...'
+                  : 'Building your custom React component...'
                 }
               </p>
               <div className="mt-3">

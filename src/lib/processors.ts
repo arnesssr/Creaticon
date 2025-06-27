@@ -3,32 +3,28 @@ import * as cheerio from 'cheerio';
 import DOMPurify from 'dompurify';
 import { ExtractedIcon, ProcessedCode } from '@/types';
 
-export const processGeneratedHTML = (html: string): ProcessedCode => {
+// Process HTML specifically for icon extraction
+export const processIconHTML = (html: string): ProcessedCode => {
   const $ = cheerio.load(html);
   
-  // Extract CSS
+  // Extract CSS for icons
   const cssContent = $('style').map((_, el) => $(el).html()).get().join('\n');
-  $('style').remove();
-  
-  // Extract JavaScript
-  const jsContent = $('script').map((_, el) => $(el).html()).get().join('\n');
-  $('script').remove();
   
   // Extract SVG icons
   const icons = extractSVGIcons(html);
   
-  // Clean HTML (remove style and script tags for display)
-  const cleanHTML = $.html();
-  
   return {
     html: html, // Keep original for preview
     css: cssContent,
-    javascript: jsContent,
+    javascript: '', // Icons typically don't need JavaScript
     svgIcons: icons,
     icons: icons, // For backward compatibility
     preview: html
   };
 };
+
+// Legacy function name for backward compatibility
+export const processGeneratedHTML = processIconHTML;
 
 // SVG extraction logic according to plan specifications
 export const extractSVGIcons = (html: string): ExtractedIcon[] => {

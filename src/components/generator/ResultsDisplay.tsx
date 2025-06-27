@@ -1,12 +1,13 @@
 import React from 'react';
-import { ProcessedCode } from '@/types';
+import { ProcessedCode, ReactComponent } from '@/types';
 import IconResults from './IconResults';
-import UIResults from './UIResults';
+import ReactComponentResults from './ReactComponentResults';
 
 interface ResultsDisplayProps {
-  generationType: 'icons' | 'ui';
+  generationType: 'icons' | 'react-component';
   isLoading: boolean;
   generatedCode: ProcessedCode | null;
+  reactComponent: ReactComponent | null;
   error: string | null;
 }
 
@@ -14,6 +15,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   generationType,
   isLoading,
   generatedCode,
+  reactComponent,
   error
 }) => {
   console.log('🎯 ResultsDisplay render - isLoading:', isLoading, 'generationType:', generationType);
@@ -45,16 +47,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     );
   }
 
-  if (!generatedCode) {
+  if (!generatedCode && !reactComponent) {
     return null;
   }
 
   return (
     <div className="space-y-6">
       {generationType === 'icons' ? (
-        <IconResults icons={generatedCode.svgIcons} />
+        generatedCode && <IconResults icons={generatedCode.svgIcons} />
       ) : (
-        <UIResults generatedCode={generatedCode} />
+        reactComponent && <ReactComponentResults component={reactComponent} />
       )}
     </div>
   );
