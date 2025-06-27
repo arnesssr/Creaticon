@@ -235,48 +235,40 @@ export const generateUIWithHuggingFace = async (input: GenerationRequest): Promi
   }
 };
 
-// Intelligent icon generation prompt that understands context
+// Simplified icon generation prompt for faster responses
 const generateIconPackPrompt = (input: UserInput): string => `
-You are an expert UI/UX designer and icon creator. Analyze this app description and create a comprehensive icon pack:
+Create a complete HTML icon pack for: "${input.projectDescription}"
 
-"${input.projectDescription}"
+Requirements:
+- 12-18 relevant SVG icons
+- Style: ${input.stylePreference} 
+- Colors: ${input.colorScheme || 'modern palette'}
+- Categories: navigation, actions, content, status
+- 24x24px icons with data-name attributes
+- Embedded CSS with hover effects
+- Grid layout
 
-FIRST, understand the app context:
-1. What type of application is this?
-2. What are the main features/sections this app would have?
-3. What user actions would be common?
-4. What is the target audience and style?
+Return ONLY complete HTML from <!DOCTYPE html> to </html>.
+No explanations. Fast and beautiful!`;
 
-THEN, create a complete HTML document with:
-1. A comprehensive set of SVG icons (15-25 icons minimum)
-2. Icons should cover ALL app sections: navigation, features, actions, states, etc.
-3. Each icon should be semantically meaningful and contextually relevant
-4. Apply beautiful CSS styling using:
-   - Gradients that match the app's purpose
-   - Hover effects and animations
-   - Consistent design language
-   - Modern styling techniques
-   - Color schemes that reflect the app's domain
-
-Style requirements:
-- App style: ${input.stylePreference}
-- Color preference: ${input.colorScheme || 'modern and contextual'}
-- Icons should feel cohesive and professional
-- Use CSS animations, transforms, and modern properties
-- Each icon should have proper naming (data-name attribute)
-
-Create an HTML showcase page that displays all icons with:
-- Proper categorization (navigation, actions, features, etc.)
-- Hover effects and animations
-- Consistent styling
-- Beautiful presentation
-
-Return ONLY the complete HTML code with embedded CSS and all SVG icons.
-Start with <!DOCTYPE html> and end with </html>
-`;
-
-// Structured prompt for UI generation
+// Simplified UI prompt for faster responses
 const generateUIPrompt = (input: UserInput): string => `
+Create a complete HTML page for: "${input.projectDescription}"
+
+Requirements:
+- Complete HTML5 structure
+- Embedded CSS and JavaScript
+- Style: ${input.stylePreference}
+- Colors: ${input.colorScheme || 'professional'}
+- Responsive design
+- Custom SVG icons
+- Interactive elements
+
+Return ONLY complete HTML from <!DOCTYPE html> to </html>.
+No explanations. Make it modern and functional!`;
+
+// Structured prompt for UI generation (legacy compatibility)
+const generateUIPromptLegacy = (input: UserInput): string => `
 Create a complete, functional HTML page for: "${input.projectDescription}"
 
 Requirements:
@@ -296,8 +288,9 @@ The page should include:
 5. Footer
 
 Return ONLY the complete HTML code, no explanations.
-Start with <!DOCTYPE html> and end with </html>
+Start with <DOCTYPE html> and end with </html>
 `;
+
 
 const createUIGenerationPrompt = (input: GenerationRequest): string => {
   return `

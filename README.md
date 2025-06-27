@@ -1,5 +1,7 @@
 # Creaticon 🎨
 
+![Creaticon - AI-Powered Design Studio](https://github.com/user-attachments/assets/your-image-id-here)
+
 ## Overview
 
 Creaticon is a powerful AI-driven tool for generating beautiful UI components and icon packs. Simply describe what you want, and our AI will create professional-quality designs ready for download and use in your projects.

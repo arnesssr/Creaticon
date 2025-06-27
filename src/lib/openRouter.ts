@@ -88,7 +88,7 @@ export const generateIconsWithOpenRouter = async (input: GenerationRequest): Pro
       messages: [
         {
           role: "system",
-          content: "You are Creaticon AI, a professional icon designer and frontend developer. You create beautiful, contextual SVG icon packs with modern styling and animations."
+          content: "You are Creaticon AI, a professional icon designer. Create beautiful, contextual SVG icon packs quickly and efficiently."
         },
         {
           role: "user",
@@ -96,9 +96,9 @@ export const generateIconsWithOpenRouter = async (input: GenerationRequest): Pro
         }
       ],
       stream: true,
-      temperature: 0.7,
-      max_tokens: 8000,
-      top_p: 0.9
+      temperature: 0.5, // Lower for faster, more focused responses
+      max_tokens: 6000, // Reduced for faster generation
+      top_p: 0.8 // More focused responses
     };
 
     console.log('📤 Sending request to DeepSeek V3:', prompt.substring(0, 200) + '...');
@@ -201,7 +201,7 @@ export const generateUIWithOpenRouter = async (input: GenerationRequest): Promis
       messages: [
         {
           role: "system",
-          content: "You are Creaticon AI, a professional frontend developer and UI/UX designer. You create beautiful, modern, and responsive web interfaces with embedded CSS and JavaScript."
+          content: "You are Creaticon AI, a professional frontend developer. Create beautiful, modern web interfaces quickly and efficiently."
         },
         {
           role: "user",
@@ -209,9 +209,9 @@ export const generateUIWithOpenRouter = async (input: GenerationRequest): Promis
         }
       ],
       stream: true,
-      temperature: 0.7,
-      max_tokens: 8000,
-      top_p: 0.9
+      temperature: 0.6, // Balanced for speed and creativity
+      max_tokens: 7000, // Reduced for faster generation
+      top_p: 0.85 // More focused responses
     };
 
     console.log('📤 Sending UI request to DeepSeek V3:', prompt.substring(0, 200) + '...');
@@ -296,112 +296,21 @@ export const generateUIWithOpenRouter = async (input: GenerationRequest): Promis
   }
 };
 
-// Enhanced icon generation prompt for DeepSeek V3
+// Simplified icon generation prompt for faster responses
 const createOpenRouterIconPrompt = (input: GenerationRequest): string => {
-  const iconLibraryReference = `
-// Icon Library Style References (for inspiration only - create original SVGs):
-// - Lucide: Clean, minimal, consistent stroke width
-// - Heroicons: Tailwind-style, modern, professional
-// - Feather: Lightweight, elegant, simple
-// - Phosphor: Versatile, comprehensive, well-crafted
-// - Tabler: Clean, consistent, developer-friendly
+  return `Create a complete HTML icon pack for: "${input.projectDescription}"
 
-// Design principles: Consistency, clarity, context awareness, modern aesthetics
-`;
+Requirements:
+- 15-20 relevant SVG icons
+- Style: ${input.stylePreference}
+- Colors: ${input.colorScheme || 'modern palette'}
+- Icons: navigation, actions, content, communication, status
+- 24x24px base size with data-icon-name attributes
+- Embedded CSS with hover effects
+- Responsive grid layout
 
-  return `${iconLibraryReference}
-
-🎨 **CREATICON ICON GENERATION TASK**
-
-**Project Analysis:**
-- **Description:** "${input.projectDescription}"
-- **Type:** ${input.projectType}
-- **Style:** ${input.stylePreference}
-- **Colors:** ${input.colorScheme || 'modern contextual palette'}
-
-**CONTEXT INTELLIGENCE REQUIRED:**
-1. 🧠 **App Purpose Analysis:** What is the core function of this application?
-2. 🔄 **User Journey Mapping:** What workflows and interactions does this app facilitate?
-3. 🧭 **Navigation Structure:** What navigation elements are essential?
-4. ⚡ **Action Categories:** What primary and secondary actions can users perform?
-5. 📊 **Status & Feedback:** What status indicators and feedback mechanisms are needed?
-6. 📁 **Content Types:** What types of content, data, or media does the app handle?
-
-**DESIGN SPECIFICATIONS:**
-- **Icon Count:** 25-35 contextually relevant SVG icons
-- **Base Size:** 24x24px with flexible scaling (16px, 32px, 48px variants)
-- **Naming Convention:** Use data-icon-name attribute with semantic names
-- **Design Language:** Consistent stroke width (2px), rounded corners (2px radius)
-- **Animation Ready:** Prepare for hover states and micro-interactions
-
-**CONTEXTUAL COLOR STRATEGY:**
-- **Domain Colors:** Reflect app purpose (e.g., finance=blue/green, health=blue/white, creative=purple/pink)
-- **State Colors:** Success (#10b981), Warning (#f59e0b), Error (#ef4444), Info (#3b82f6)
-- **Gradients:** Modern, subtle gradients for premium feel
-- **Accessibility:** Ensure proper contrast ratios (AA standard)
-
-**REQUIRED ICON CATEGORIES:**
-
-1. **🧭 Navigation & Core (6-8 icons):**
-   - home, menu, search, profile, settings, back/forward
-
-2. **⚡ Primary Actions (8-10 icons):**
-   - add/create, edit, delete, save, share, download, upload, refresh
-
-3. **📁 Content & Media (6-8 icons):**
-   - text, image, video, file, folder, document, gallery
-
-4. **💬 Communication (4-6 icons):**
-   - message, email, phone, notification, chat, comment
-
-5. **📊 Status & Feedback (4-6 icons):**
-   - success, error, warning, info, loading, completed, pending
-
-6. **🎯 Feature-Specific (8-12 icons):**
-   - Based on the specific app functionality described
-
-**TECHNICAL IMPLEMENTATION:**
-- **HTML Structure:** Complete document with DOCTYPE, head, body
-- **CSS Organization:** Embedded styles with CSS custom properties
-- **Grid Layout:** Responsive CSS Grid with category sections
-- **Accessibility:** Proper aria-labels, semantic markup, keyboard navigation
-- **Animations:** Smooth hover effects, transitions, micro-interactions
-
-**ANIMATION GUIDELINES:**
-- **Hover Effects:** Subtle scale (1.05x), color transitions, glow effects
-- **Timing:** 0.3s ease-in-out for most transitions
-- **Performance:** CSS transforms over position changes
-- **User Feedback:** Clear visual response to interactions
-
-**OUTPUT REQUIREMENTS:**
-Generate a complete HTML document with:
-
-1. **Document Structure:**
-   - Proper DOCTYPE and meta tags
-   - Embedded CSS in <style> tags
-   - Responsive design principles
-
-2. **Icon Organization:**
-   - Categorized sections with headers
-   - Responsive grid layout
-   - Size variant demonstrations
-   - Interactive hover states
-
-3. **Quality Standards:**
-   - Professional, production-ready icons
-   - Consistent visual language
-   - Semantic and accessible markup
-   - Modern CSS techniques
-
-4. **Demonstration Features:**
-   - Icon size variants (16, 24, 32, 48px)
-   - Color variations and themes
-   - Animation examples
-   - Usage examples
-
-**CRITICAL:** Return ONLY the complete HTML document. Start with \`<!DOCTYPE html>\` and end with \`</html>\`. No explanations, no markdown formatting. Create icons that feel purposeful, cohesive, and specifically designed for the described application.
-
-Make this the most beautiful, contextual, and professional icon pack that perfectly serves the application's needs!`;
+Return ONLY complete HTML starting with <!DOCTYPE html> and ending with </html>.
+No explanations or markdown. Make it fast and beautiful!`;
 };
 
 // Enhanced UI generation prompt for DeepSeek V3
