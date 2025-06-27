@@ -455,48 +455,105 @@ function getAccessibilityInstructions(accessibility: boolean): string {
 }
 
 function parseGeneratedReactComponent(code: string, request: ComponentGenerationRequest): any {
-  // Clean the code
-  let cleanCode = code.replace(/```[a-zA-Z]*\n?/g, '').trim();
-  
-  // Extract component name
-  const nameMatch = cleanCode.match(/(?:function|const)\s+(\w+)/);
-  const componentName = nameMatch ? nameMatch[1] : 'GeneratedComponent';
-  
-  // Extract dependencies
-  const dependencies: string[] = [];
-  const importMatches = cleanCode.matchAll(/import\s+.*?\s+from\s+['"]([^'"]+)['"]/g);
-  for (const match of importMatches) {
-    const packageName = match[1];
-    if (!packageName.startsWith('.') && !packageName.startsWith('/')) {
-      dependencies.push(packageName);
+  try {
+    // Clean the code more thoroughly
+    let cleanCode = code
+      .replace(/```[a-zA-Z]*\n?/g, '') // Remove code blocks
+      .replace(/^\s*```\s*$/gm, '') // Remove standalone code block markers
+      .trim();
+    
+    // Validate that we have actual code
+    if (!cleanCode || cleanCode.length < 10) {
+      throw new Error('Generated code is too short or empty');
     }
+    
+    // Extract component name with better regex
+    const nameMatch = cleanCode.match(/(?:export\s+default\s+)?(?:function|const|class)\s+(\w+)/);
+    const componentName = nameMatch ? nameMatch[1] : 'GeneratedComponent';
+    
+    // Extract dependencies more comprehensively
+    const dependencies: string[] = ['react'];
+    const importMatches = cleanCode.matchAll(/import\s+.*?\s+from\s+['"]([^'"]+)['"]/g);
+    for (const match of importMatches) {
+      const packageName = match[1];
+      if (!packageName.startsWith('.') && !packageName.startsWith('/') && !packageName.startsWith('react/')) {
+        dependencies.push(packageName);
+      }
+    }
+    
+    // Add styling-specific dependencies
+    if (request.styling === 'tailwind' && !dependencies.includes('tailwindcss')) {
+      dependencies.push('tailwindcss');
+    }
+    if (cleanCode.includes('lucide-react') && !dependencies.includes('lucide-react')) {
+      dependencies.push('lucide-react');
+    }
+    
+    // Extract props with improved parsing
+    const props = extractPropsFromCode(cleanCode);
+    
+    // Generate better preview content
+    const previewHtml = generateComponentPreview(cleanCode, componentName, props);
+    
+    // Generate usage example
+    const usageExample = generateUsageExample(componentName, props);
+    
+    return {
+      id: `comp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: componentName,
+      displayName: componentName.replace(/([A-Z])/g, ' $1').trim(),
+      description: request.description,
+      code: cleanCode,
+      props: props,
+      dependencies: [...new Set(dependencies)],
+      category: request.category || 'layout',
+      framework: request.framework,
+      styling: request.styling,
+      preview: {
+        livePreview: previewHtml,
+        codePreview: cleanCode,
+        usage: usageExample
+      },
+      variants: [], // Could be populated later
+      responsive: request.responsive || true,
+      accessibility: {
+        ariaLabels: request.accessibility || false,
+        keyboardNavigation: request.accessibility || false,
+        screenReaderFriendly: request.accessibility || false
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('Error parsing generated React component:', error);
+    
+    // Return a fallback component structure
+    return {
+      id: `comp_error_${Date.now()}`,
+      name: 'ErrorComponent',
+      displayName: 'Error Component',
+      description: `Error parsing component: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      code: `// Error parsing generated code\n// Original request: ${request.description}\n\nconst ErrorComponent = () => {\n  return (\n    <div className="p-4 border border-red-300 bg-red-50 rounded-lg">\n      <h3 className="text-red-800 font-medium">Component Generation Error</h3>\n      <p className="text-red-600 text-sm mt-1">\n        There was an issue parsing the generated component code.\n      </p>\n    </div>\n  );\n};\n\nexport default ErrorComponent;`,
+      props: [],
+      dependencies: ['react'],
+      category: 'feedback',
+      framework: request.framework,
+      styling: request.styling,
+      preview: {
+        livePreview: '<div class="p-4 border border-red-300 bg-red-50 rounded-lg"><h3 class="text-red-800 font-medium">Component Generation Error</h3><p class="text-red-600 text-sm mt-1">There was an issue parsing the generated component code.</p></div>',
+        codePreview: 'Error parsing code',
+        usage: '<ErrorComponent />'
+      },
+      responsive: true,
+      accessibility: {
+        ariaLabels: true,
+        keyboardNavigation: false,
+        screenReaderFriendly: true
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
   }
-  
-  return {
-    id: `comp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    name: componentName,
-    displayName: componentName.replace(/([A-Z])/g, ' $1').trim(),
-    description: request.description,
-    code: cleanCode,
-    props: [], // Would be extracted by proper parser
-    dependencies: [...new Set(dependencies)],
-    category: request.category || 'layout',
-    framework: request.framework,
-    styling: request.styling,
-    preview: {
-      livePreview: '<div>Live preview would be rendered here</div>',
-      codePreview: cleanCode,
-      usage: `<${componentName} />`
-    },
-    responsive: request.responsive,
-    accessibility: {
-      ariaLabels: request.accessibility,
-      keyboardNavigation: request.accessibility,
-      screenReaderFriendly: request.accessibility
-    },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
 }
 
 // ===== COORDINATED AI GENERATION =====
@@ -541,6 +598,136 @@ export const generateWithCoordinatedAI = async (
     };
   }
 };
+
+// ===== HELPER FUNCTIONS FOR COMPONENT PARSING =====
+function extractPropsFromCode(code: string): any[] {
+  const props: any[] = [];
+  
+  try {
+    // Look for interface definitions
+    const interfaceMatch = code.match(/interface\s+(\w*Props)\s*{([^}]+)}/s);
+    if (interfaceMatch) {
+      const propsBody = interfaceMatch[2];
+      const propLines = propsBody.split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('/'));
+      
+      propLines.forEach(line => {
+        const propMatch = line.match(/(\w+)(\?)?:\s*([^;]+);?/);
+        if (propMatch) {
+          const [, name, optional, type] = propMatch;
+          props.push({
+            name: name,
+            type: mapTypeScriptToSimpleType(type.trim()),
+            required: !optional,
+            description: `${name} prop`
+          });
+        }
+      });
+    }
+    
+    // Look for destructured props in function parameters
+    const destructureMatch = code.match(/\(\s*{\s*([^}]+)\s*}\s*[):]/);
+    if (destructureMatch && props.length === 0) {
+      const propsString = destructureMatch[1];
+      const propNames = propsString.split(',').map(p => p.trim().split(':')[0].trim());
+      
+      propNames.forEach(name => {
+        if (name && !name.includes('...')) {
+          props.push({
+            name: name.replace(/[?=].*/, ''),
+            type: 'string',
+            required: !name.includes('?'),
+            description: `${name} prop`
+          });
+        }
+      });
+    }
+  } catch (error) {
+    console.warn('Error extracting props:', error);
+  }
+  
+  return props;
+}
+
+function mapTypeScriptToSimpleType(tsType: string): string {
+  const type = tsType.toLowerCase().trim();
+  if (type.includes('string')) return 'string';
+  if (type.includes('number')) return 'number';
+  if (type.includes('boolean')) return 'boolean';
+  if (type.includes('function') || type.includes('=>')) return 'function';
+  if (type.includes('array') || type.includes('[]')) return 'array';
+  if (type.includes('reactnode') || type.includes('element')) return 'node';
+  if (type.includes('object') || type.includes('{')) return 'object';
+  return 'string'; // default fallback
+}
+
+function generateComponentPreview(code: string, componentName: string, props: any[]): string {
+  // Generate a simple HTML preview
+  const hasProps = props.length > 0;
+  const defaultProps = hasProps ? props.map(p => `${p.name}="example"`).join(' ') : '';
+  
+  return `
+    <div class="component-preview p-4 border border-gray-200 rounded-lg">
+      <div class="component-header mb-2">
+        <h3 class="text-lg font-semibold">${componentName}</h3>
+        <p class="text-sm text-gray-600">React Component Preview</p>
+      </div>
+      <div class="component-demo">
+        <!-- Component would render here: <${componentName} ${defaultProps} /> -->
+        <div class="bg-gray-50 p-4 rounded border-2 border-dashed border-gray-300 text-center">
+          <p class="text-gray-600">🚧 Live preview will be generated</p>
+          <p class="text-sm text-gray-500 mt-1">${componentName} component</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function generateUsageExample(componentName: string, props: any[]): string {
+  if (props.length === 0) {
+    return `// Basic usage
+import ${componentName} from './${componentName}';
+
+<${componentName} />`;
+  }
+  
+  const requiredProps = props.filter(p => p.required);
+  const optionalProps = props.filter(p => !p.required);
+  
+  let usage = `// Basic usage with required props
+import ${componentName} from './${componentName}';
+
+`;
+  
+  if (requiredProps.length > 0) {
+    const propsExample = requiredProps
+      .map(prop => `  ${prop.name}={${getExampleValue(prop.type)}}`)
+      .join('\n');
+    usage += `<${componentName}\n${propsExample}\n/>\n\n`;
+  }
+  
+  if (optionalProps.length > 0) {
+    usage += `// With all props\n`;
+    const allPropsExample = props
+      .map(prop => `  ${prop.name}={${getExampleValue(prop.type)}}`)
+      .join('\n');
+    usage += `<${componentName}\n${allPropsExample}\n/>`;
+  }
+  
+  return usage;
+}
+
+function getExampleValue(type: string): string {
+  switch (type) {
+    case 'string': return '"Hello World"';
+    case 'number': return '42';
+    case 'boolean': return 'true';
+    case 'function': return '() => console.log("clicked")';
+    case 'array': return '[1, 2, 3]';
+    case 'node': return '<span>Content</span>';
+    case 'object': return '{ key: "value" }';
+    default: return '"example"';
+  }
+}
 
 // ===== UTILITY FUNCTIONS =====
 const cleanHTML = (html: string): string => {
