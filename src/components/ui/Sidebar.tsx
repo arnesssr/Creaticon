@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { SimpleThemeToggle } from '@/components/ui/theme-toggle';
 import { 
   X, 
@@ -30,6 +31,7 @@ interface APIKeys {
   openai: string;
   anthropic: string;
   gemini: string;
+  huggingface: string;
 }
 
 type SidebarSection = 'main' | 'settings' | 'history';
@@ -40,14 +42,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     openrouter: '',
     openai: '',
     anthropic: '',
-    gemini: ''
+    gemini: '',
+    huggingface: ''
   });
   
   const [showKeys, setShowKeys] = useState({
     openrouter: false,
     openai: false,
     anthropic: false,
-    gemini: false
+    gemini: false,
+    huggingface: false
   });
 
   // Load API keys from localStorage on component mount
@@ -95,7 +99,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       openrouter: '',
       openai: '',
       anthropic: '',
-      gemini: ''
+      gemini: '',
+      huggingface: ''
     });
     localStorage.removeItem('creaticon_api_keys');
     toast.success('All API keys cleared');
@@ -171,6 +176,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       description: 'Gemini Pro for creative icon and UI generation',
       placeholder: 'AI...',
       recommended: true
+    },
+    {
+      key: 'huggingface' as keyof APIKeys,
+      name: 'Hugging Face',
+      description: 'DeepSeek Coder for open-source enhancement',
+      placeholder: 'hf_...',
+      recommended: false
     }
   ];
 
@@ -241,97 +253,105 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <div className="space-y-6">
             <h3 className="text-lg font-semibold">Settings</h3>
             
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Key className="w-4 h-4" />
-                  API Keys
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Add your own API keys for unlimited access and better performance.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {providers.map((provider) => (
-                  <div key={provider.key} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor={provider.key} className="text-xs font-medium">
-                        {provider.name}
-                        {provider.recommended && (
-                          <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary/10 text-primary rounded">
-                            ⭐
-                          </span>
-                        )}
-                      </Label>
-                      {apiKeys[provider.key] && (
-                        <Button
-                          variant="ghost"
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">API Keys</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <Key className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-80">
+                    <DropdownMenuLabel className="text-xs">Configure AI Providers</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    
+                    <div className="p-3 space-y-3 max-h-96 overflow-y-auto">
+                      {providers.map((provider) => (
+                        <div key={provider.key} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium">{provider.name}</span>
+                              {provider.recommended && (
+                                <span className="px-1.5 py-0.5 text-xs bg-primary/10 text-primary rounded">⭐</span>
+                              )}
+                              {apiKeys[provider.key] && (
+                                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                              )}
+                            </div>
+                            {apiKeys[provider.key] && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => clearKey(provider.key)}
+                                className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
+                          
+                          <div className="relative">
+                            <Input
+                              type={showKeys[provider.key] ? "text" : "password"}
+                              placeholder={provider.placeholder}
+                              value={apiKeys[provider.key]}
+                              onChange={(e) => handleKeyChange(provider.key, e.target.value)}
+                              className="pr-8 text-xs h-8"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                              onClick={() => toggleKeyVisibility(provider.key)}
+                            >
+                              {showKeys[provider.key] ? (
+                                <EyeOff className="w-3 h-3" />
+                              ) : (
+                                <Eye className="w-3 h-3" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <DropdownMenuSeparator />
+                    <div className="p-3 space-y-2">
+                      <div className="flex gap-2">
+                        <Button onClick={saveKeys} size="sm" className="flex-1 text-xs h-7">
+                          <Save className="w-3 h-3 mr-1" />
+                          Save
+                        </Button>
+                        <Button 
+                          variant="outline" 
                           size="sm"
-                          onClick={() => clearKey(provider.key)}
-                          className="h-5 w-5 p-0 text-destructive hover:text-destructive"
+                          onClick={clearAllKeys}
+                          className="text-destructive hover:text-destructive h-7"
                         >
                           <Trash2 className="w-3 h-3" />
                         </Button>
-                      )}
-                    </div>
-                    
-                    <p className="text-xs text-muted-foreground">
-                      {provider.description}
-                    </p>
-                    
-                    <div className="relative">
-                      <Input
-                        id={provider.key}
-                        type={showKeys[provider.key] ? "text" : "password"}
-                        placeholder={provider.placeholder}
-                        value={apiKeys[provider.key]}
-                        onChange={(e) => handleKeyChange(provider.key, e.target.value)}
-                        className="pr-8 text-xs"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 p-0"
-                        onClick={() => toggleKeyVisibility(provider.key)}
+                      </div>
+                      
+                      <Button 
+                        onClick={testAPI}
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full text-xs h-7"
+                        disabled={!apiKeys.openrouter && !apiKeys.gemini}
                       >
-                        {showKeys[provider.key] ? (
-                          <EyeOff className="w-3 h-3" />
-                        ) : (
-                          <Eye className="w-3 h-3" />
-                        )}
+                        🧪 Test Connection
                       </Button>
                     </div>
-                  </div>
-                ))}
-
-              <div className="flex gap-2 pt-3">
-                <Button onClick={saveKeys} size="sm" className="flex-1 text-xs">
-                  <Save className="w-3 h-3 mr-1" />
-                  Save
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={clearAllKeys}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               
-              <div className="pt-3 border-t border-border">
-                <Button 
-                  onClick={testAPI}
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full text-xs"
-                  disabled={!apiKeys.openrouter && !apiKeys.gemini}
-                >
-                  🧪 Test API Connection
-                </Button>
+              {/* Status indicator */}
+              <div className="text-xs text-muted-foreground">
+                {Object.values(apiKeys).filter(key => key.trim()).length} of {providers.length} providers configured
               </div>
-              </CardContent>
-            </Card>
+            </div>
             
             <Card>
               <CardHeader>

@@ -1,4 +1,6 @@
 import { UserInput } from '@/types';
+import { generateUIWithOpenAI, generateIconsWithOpenAI, generateFastWithOpenAI } from './openaiService';
+import { generateUIWithAnthropic, generateIconsWithAnthropic, generateFastWithAnthropic } from './anthropicService';
 
 export interface GenerationRequest {
   projectDescription: string;
@@ -13,6 +15,41 @@ export interface GenerationResponse {
   success: boolean;
   error?: string;
 }
+
+export type AIProvider = 'openrouter' | 'openai' | 'anthropic' | 'gemini' | 'huggingface';
+
+export const AI_PROVIDERS = {
+  openrouter: {
+    name: 'OpenRouter (DeepSeek V3)',
+    description: 'Fast, creative AI with access to latest models',
+    icon: '🟡',
+    models: ['deepseek-chat-v3']
+  },
+  openai: {
+    name: 'OpenAI',
+    description: 'GPT-4 and GPT-3.5 for reliable generation',
+    icon: '🟢',
+    models: ['gpt-4', 'gpt-3.5-turbo']
+  },
+  anthropic: {
+    name: 'Anthropic Claude',
+    description: 'Claude Sonnet and Haiku for thoughtful design',
+    icon: '🟣',
+    models: ['claude-3-sonnet', 'claude-3-haiku']
+  },
+  gemini: {
+    name: 'Google Gemini',
+    description: 'Google\'s advanced AI for creative solutions',
+    icon: '🔵',
+    models: ['gemini-pro']
+  },
+  huggingface: {
+    name: 'Hugging Face',
+    description: 'Open-source models for enhancement',
+    icon: '🤗',
+    models: ['deepseek-coder']
+  }
+} as const;
 
 // ===== OPENROUTER (DEEPSEEK V3) - UI COMPONENT GENERATION =====
 export const generateUIWithOpenRouter = async (input: GenerationRequest): Promise<GenerationResponse> => {

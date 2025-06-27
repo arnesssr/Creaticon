@@ -1,6 +1,6 @@
 # Creaticon 🎨
 
-![Creaticon - AI-Powered Design Studio](./assets/screenshot.png)
+![Creaticon - AI-Powered Icon & UI Creation Studio](./assets/Screenshot%202025-06-27%20at%2005-11-46%20Creaticon%20-%20AI-Powered%20Icon%20&%20UI%20Creation%20Studio.png)
 
 *AI-Powered Design Studio for generating beautiful UI components and icon packs*
 
@@ -26,6 +26,9 @@ Creaticon is a powerful AI-driven tool for generating beautiful UI components an
 - **Modern Styling**: Generated with Tailwind CSS and modern web standards
 
 #### 🔧 Advanced Features
+- **Multi-Provider AI**: Choose between OpenAI, Anthropic, Google Gemini, OpenRouter, and Hugging Face
+- **Smart Provider Selection**: Automatic fallbacks and intelligent load balancing
+- **API Key Management**: Secure local storage with easy configuration interface
 - **Format Conversion**: Convert SVG icons to multiple image formats
 - **Custom Sizing**: Support for custom icon sizes up to 2048px
 - **Quality Control**: Adjustable compression for JPG/WebP formats
@@ -58,17 +61,23 @@ npm run dev
 
 ### Environment Setup
 
-Create a `.env` file in the root directory and add your AI provider API keys:
+Create a `.env` file in the root directory and add your AI provider API keys. You only need to configure the providers you want to use:
 
 ```env
-# OpenRouter API Key (for DeepSeek V3)
-VITE_OPENROUTER_API_KEY=your_openrouter_api_key
+# OpenRouter API Key (Recommended - access to multiple models)
+VITE_OPENROUTER_API_KEY=sk-or-v1-your-openrouter-api-key
+
+# OpenAI API Key (GPT-4, GPT-3.5)
+VITE_OPENAI_API_KEY=sk-your-openai-api-key
+
+# Anthropic API Key (Claude Sonnet, Claude Haiku)
+VITE_ANTHROPIC_API_KEY=sk-ant-your-anthropic-api-key
 
 # Google Gemini API Key
-VITE_GEMINI_API_KEY=your_gemini_api_key
+VITE_GEMINI_API_KEY=your-gemini-api-key
 
-# Hugging Face API Key
-VITE_HUGGINGFACE_API_KEY=your_huggingface_api_key
+# Hugging Face API Key (Open-source models)
+VITE_HUGGINGFACE_API_KEY=hf_your-huggingface-token
 ```
 
 ## 📱 Usage
@@ -95,11 +104,45 @@ VITE_HUGGINGFACE_API_KEY=your_huggingface_api_key
 "Design a dashboard card showing user statistics with charts and modern styling"
 ```
 
+## 🤖 AI Providers
+
+Creaticon supports multiple AI providers to give you the best generation experience:
+
+### 🟡 OpenRouter (Recommended)
+- **Model**: DeepSeek V3
+- **Strengths**: Fast, creative, access to latest models
+- **Best for**: General UI and icon generation
+- **Get API Key**: [OpenRouter Console](https://openrouter.ai/)
+
+### 🟢 OpenAI
+- **Models**: GPT-4, GPT-3.5 Turbo
+- **Strengths**: Reliable, high-quality outputs
+- **Best for**: Professional components and detailed icons
+- **Get API Key**: [OpenAI API](https://platform.openai.com/)
+
+### 🟣 Anthropic Claude
+- **Models**: Claude 3 Sonnet, Claude 3 Haiku
+- **Strengths**: Thoughtful design, excellent UX focus
+- **Best for**: User-centered design and accessibility
+- **Get API Key**: [Anthropic Console](https://console.anthropic.com/)
+
+### 🔵 Google Gemini
+- **Model**: Gemini Pro
+- **Strengths**: Creative solutions, modern patterns
+- **Best for**: Innovative UI concepts
+- **Get API Key**: [Google AI Studio](https://aistudio.google.com/)
+
+### 🤗 Hugging Face
+- **Model**: DeepSeek Coder
+- **Strengths**: Open-source, code enhancement
+- **Best for**: Styling improvements and fallback
+- **Get API Key**: [Hugging Face Hub](https://huggingface.co/)
+
 ## 🛠️ Technologies
 
 - **Frontend**: React 18, TypeScript, Vite
 - **Styling**: Tailwind CSS, shadcn/ui components
-- **AI Integration**: OpenRouter (DeepSeek V3), Google Gemini, Hugging Face
+- **AI Integration**: Multiple providers with intelligent fallbacks
 - **File Processing**: JSZip, File-Saver, Canvas API
 - **Animations**: CSS animations, React transitions
 - **Format Support**: SVG, PNG, JPG, WebP, ICO
