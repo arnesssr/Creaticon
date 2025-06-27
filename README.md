@@ -1,6 +1,6 @@
 # Creaticon 🎨
 
-[Creaticon - AI-Powered Design Studio](./assets/Screenshot 2025-06-27 at 05-11-46 Creaticon - AI-Powered Icon & UI Creation Studio.png)
+![Creaticon - AI-Powered Icon & UI Creation Studio](./assets/Screenshot%202025-06-27%20at%2005-11-46%20Creaticon%20-%20AI-Powered%20Icon%20&%20UI%20Creation%20Studio.png)
 
 *AI-Powered Design Studio for generating beautiful UI components and icon packs*
 
