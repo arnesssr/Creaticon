@@ -307,3 +307,44 @@ export const generateUIWithFullCoordination = async (
     optimizationLevel: 'advanced'
   }, 'ui');
 };
+
+/**
+ * AI Coordinator Service Instance
+ * Provides a unified interface for AI coordination
+ */
+export class AICoordinatorService {
+  async callBestProvider(
+    prompt: string,
+    options: {
+      maxTokens?: number;
+      temperature?: number;
+      preferredProvider?: string;
+      stream?: boolean;
+    } = {}
+  ): Promise<{ success: boolean; content?: string; error?: string }> {
+    try {
+      const result = await generateDesignWithV3(
+        {
+          projectDescription: prompt,
+          projectType: 'web-app',
+          stylePreference: 'modern'
+        },
+        'ui'
+      );
+      
+      return {
+        success: result.success,
+        content: result.html,
+        error: result.error
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+}
+
+// Export the service instance
+export const aiCoordinator = new AICoordinatorService();

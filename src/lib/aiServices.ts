@@ -283,51 +283,103 @@ export const generateReactComponentWithAI = async (
     
     const prompt = buildReactComponentPrompt(request);
     
-    const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-    if (!apiKey) {
-      throw new Error('OpenRouter API key not configured');
-    }
-
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + apiKey,
-        'HTTP-Referer': 'https://creaticon.app',
-        'X-Title': 'Creaticon - AI React Component Studio',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: "deepseek/deepseek-chat-v3-0324:free",
-        messages: [
-          {
-            role: "system",
-            content: "You are an expert React developer creating production-ready, accessible components with modern best practices."
+    // Try OpenRouter first
+    const openrouterKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+    if (openrouterKey) {
+      console.log('🚀 Using OpenRouter DeepSeek V3 for React component generation...');
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + openrouterKey,
+            'HTTP-Referer': 'https://creaticon.app',
+            'X-Title': 'Creaticon - AI React Component Studio',
+            'Content-Type': 'application/json'
           },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        stream: false,
-        temperature: 0.7,
-        max_tokens: 8000
-      })
-    });
+          body: JSON.stringify({
+            model: "deepseek/deepseek-chat-v3-0324:free",
+            messages: [
+              {
+                role: "system",
+                content: "You are an expert React developer creating production-ready, accessible components with modern best practices."
+              },
+              {
+                role: "user",
+                content: prompt
+              }
+            ],
+            stream: false,
+            temperature: 0.7,
+            max_tokens: 8000
+          })
+        });
 
-    if (!response.ok) {
-      throw new Error('OpenRouter API error: ' + response.status);
+        if (response.ok) {
+          const result = await response.json();
+          const componentCode = result.choices[0]?.message?.content || '';
+          
+          // Parse the generated component
+          const component = parseGeneratedReactComponent(componentCode, request);
+          
+          return {
+            success: true,
+            component
+          };
+        } else {
+          console.log('OpenRouter failed, trying Gemini fallback...');
+        }
+      } catch (error) {
+        console.error('OpenRouter error:', error);
+        console.log('OpenRouter error, trying Gemini fallback...');
+      }
     }
 
-    const result = await response.json();
-    const componentCode = result.choices[0]?.message?.content || '';
-    
-    // Parse the generated component
-    const component = parseGeneratedReactComponent(componentCode, request);
-    
-    return {
-      success: true,
-      component
-    };
+    // Fallback to Gemini
+    const geminiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (geminiKey) {
+      console.log('🔵 Using Gemini as fallback for React component generation...');
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: `You are an expert React developer. ${prompt}`
+              }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 8000
+            }
+          })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          const componentCode = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          
+          // Parse the generated component
+          const component = parseGeneratedReactComponent(componentCode, request);
+          
+          return {
+            success: true,
+            component
+          };
+        } else {
+          console.log('Gemini failed, no more fallbacks available.');
+        }
+      } catch (error) {
+        console.error('Gemini error:', error);
+      }
+    }
+
+    throw new Error('All AI providers failed. Please check your API keys.');
+
   } catch (error) {
     console.error('❌ React Component Generation Error:', error);
     return {

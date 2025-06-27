@@ -69,7 +69,7 @@ export interface IconRequirements {
   totalIconsNeeded: number;
   iconCategories: IconCategory[];
   semanticRelationships: SemanticRelationship[];
-  stylistic Guidelines: StylisticGuideline[];
+  stylisticGuidelines: StylisticGuideline[];
 }
 
 export interface IconCategory {

@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Palette, Layout, Send } from 'lucide-react';
-import { generateIconsWithAI } from '@/lib/aiService';
-import { generateReactComponentWithAI } from '@/lib/aiServices';
-import { processIconHTML } from '@/lib/processors';
+import { generateIconsFast, generateComponentFast } from '@/lib/independentGeneration';
+import { quickEnhancePrompt } from '@/lib/aiPromptEnhancer';
+import { Sparkles, Lightbulb } from 'lucide-react';
 import Spinner from '../ui/Spinner';
 import toast from 'react-hot-toast';
 import { ProcessedCode, GenerationResult, ReactComponent } from '@/types';
@@ -17,11 +17,14 @@ interface ChatInterfaceProps {
   setGeneratedCode: (code: ProcessedCode | null) => void;
   setError: (error: string | null) => void;
   setReactComponent?: (component: ReactComponent | null) => void;
+  setIsLoading: (loading: boolean) => void;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenerationType, setGeneratedCode, setError, setReactComponent }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenerationType, setGeneratedCode, setError, setReactComponent, setIsLoading }) => {
   const [input, setInput] = useState('');
   const [isLocalLoading, setIsLocalLoading] = useState(false);
+  const [enhancedPrompt, setEnhancedPrompt] = useState('');
+  const [showEnhancement, setShowEnhancement] = useState(false);
 
   const handleGenerate = async () => {
     if (!input.trim()) {
@@ -29,132 +32,82 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenera
       return;
     }
 
-    // IMMEDIATELY trigger local loading state
-    console.log('🔄 Setting local loading state to TRUE');
+    // IMMEDIATELY trigger loading state for the specific generation type
+    console.log(`🔄 Starting ${generationType} generation...`);
     setIsLocalLoading(true);
+    setIsLoading(true); // Set parent loading state
     setError(null);
-    setGeneratedCode(null); // Clear previous results
+    
+    // Clear only relevant previous results
+    if (generationType === 'icons') {
+      setGeneratedCode(null);
+      // Don't clear React component if we're generating icons
+    } else if (generationType === 'react-component') {
+      if (setReactComponent) {
+        setReactComponent(null);
+      }
+      // Don't clear generated code if we're generating components
+    }
 
     try {
-      console.log(`🚀 Starting ${generationType} generation with input:`, input);
+      console.log(`🚀 Starting enhanced ${generationType} generation with AI workflow...`);
       
       if (generationType === 'icons') {
-        // Use OpenRouter DeepSeek V3 for icon generation
-        console.log('🎨 Using DeepSeek V3 for icon generation...');
+        // Use independent icon generation with V3 → V1 workflow
+        console.log('🎨 Using enhanced icon generation (V3 analysis + V1 generation)...');
         
-        const response = await generateIconsWithAI({
-          projectDescription: input,
-          projectType: 'icon-pack',
-          stylePreference: 'modern',
-          colorScheme: 'contextual and beautiful gradients',
-          provider: 'auto' // Use best available provider
-        });
-
-        console.log('✅ Icon Generation Response:', response);
-
-        if (response.success && response.html) {
-          const processedCode = processIconHTML(response.html);
-          setGeneratedCode(processedCode);
-          toast.success(`🎨 ${processedCode.svgIcons.length} beautiful icons generated!`);
+        const result = await generateIconsFast(input);
+        
+        console.log('✅ Icon Generation Result:', result);
+        
+        if (result.success && result.icons) {
+          setGeneratedCode(result.icons);
+          
+          const analysisText = result.analysisUsed ? ' (AI-enhanced)' : '';
+          const timeText = result.timeElapsed ? ` in ${(result.timeElapsed / 1000).toFixed(1)}s` : '';
+          
+          toast.success(`🎨 ${result.icons.svgIcons.length} beautiful icons generated${analysisText}${timeText}!`);
         } else {
-          setError(response.error || 'Failed to generate icons');
-          toast.error(response.error || 'Failed to generate icons');
+          setError(result.error || 'Failed to generate icons');
+          toast.error(result.error || 'Failed to generate icons');
         }
+        
       } else if (generationType === 'react-component') {
-        // Use AI for React component generation
-        console.log('⚛️ Using AI for React component generation...');
+        // Use independent React component generation with V3 → V1 workflow
+        console.log('⚛️ Using enhanced React component generation (V3 analysis + V1 generation)...');
         
-        const componentRequest: ComponentGenerationRequest = {
-          description: input,
-          framework: 'react-typescript',
-          styling: 'tailwind',
-          responsive: true,
-          accessibility: true,
-          complexity: 'medium'
-        };
+        const result = await generateComponentFast(input);
         
-        const response = await generateReactComponentWithAI(componentRequest);
+        console.log('✅ React Component Generation Result:', result);
         
-        console.log('✅ React Component Generation Response:', response);
-        
-        if (response.success && response.component) {
+        if (result.success && result.component) {
           // Set the React component data directly
           if (setReactComponent) {
-            setReactComponent(response.component);
+            setReactComponent(result.component);
           }
           
-          // Clear any previous generated code since we're using React components now
-          setGeneratedCode(null);
-          toast.success('⚛️ React component generated!');
+          const analysisText = result.analysisUsed ? ' (AI-enhanced)' : '';
+          const timeText = result.timeElapsed ? ` in ${(result.timeElapsed / 1000).toFixed(1)}s` : '';
+          
+          toast.success(`⚛️ React component generated${analysisText}${timeText}!`);
         } else {
-          setError(response.error || 'Failed to generate React component');
-          toast.error(response.error || 'Failed to generate React component');
+          setError(result.error || 'Failed to generate React component');
+          toast.error(result.error || 'Failed to generate React component');
         }
       }
     } catch (error) {
-      console.error('Generation error:', error);
+      console.error('Enhanced generation error:', error);
       let errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       
       // Handle specific error types
-      if (errorMessage.includes('429')) {
-        errorMessage = 'Please use your own API key for better performance and unlimited access. You can add your keys in the settings.';
+      if (errorMessage.includes('timeout')) {
+        errorMessage = 'Generation took longer than expected. Our AI is working hard! Please try again.';
+        toast.error('Generation timeout - please try again', { duration: 4000 });
+      } else if (errorMessage.includes('429')) {
+        errorMessage = 'Rate limit reached. Please add your own API keys for unlimited access.';
         toast.error('Please add your own API keys for unlimited access', { duration: 4000 });
-        
-        // Try fallback to Gemini after a short delay
-        setTimeout(async () => {
-          try {
-            console.log('🔄 Trying fallback provider (Gemini)...');
-            let fallbackResponse;
-            
-            if (generationType === 'icons') {
-              fallbackResponse = await generateIconsWithAI({
-                projectDescription: input,
-                projectType: 'icon-pack',
-                stylePreference: 'modern',
-                colorScheme: 'contextual and beautiful gradients',
-                provider: 'gemini' // Use Gemini as fallback
-              });
-            } else if (generationType === 'react-component') {
-              const componentRequest: ComponentGenerationRequest = {
-                description: input,
-                framework: 'react-typescript',
-                styling: 'tailwind',
-                responsive: true,
-                accessibility: true,
-                complexity: 'medium'
-              };
-              
-              fallbackResponse = await generateReactComponentWithAI(componentRequest);
-            }
-            
-            if (fallbackResponse.success) {
-              if (generationType === 'icons' && fallbackResponse.html) {
-                const processedCode = processIconHTML(fallbackResponse.html);
-                setGeneratedCode(processedCode);
-                toast.success('✅ Icons generated successfully with fallback provider!');
-              } else if (generationType === 'react-component' && fallbackResponse.component) {
-                if (setReactComponent) {
-                  setReactComponent(fallbackResponse.component);
-                }
-                setGeneratedCode(null);
-                toast.success('✅ React component generated successfully with fallback provider!');
-              }
-            } else {
-              setError('All AI providers are currently unavailable. Please try again later.');
-              toast.error('All providers unavailable');
-            }
-          } catch (fallbackError) {
-            console.error('Fallback generation error:', fallbackError);
-            setError('All AI providers are currently unavailable. Please try again later.');
-            toast.error('All providers unavailable');
-          } finally {
-            setIsLocalLoading(false);
-          }
-        }, 2000);
-        
-        return; // Don't set loading to false yet, fallback is running
       } else if (errorMessage.includes('401') || errorMessage.includes('403')) {
-        errorMessage = 'API authentication failed. Please check your API keys in the environment variables.';
+        errorMessage = 'API authentication failed. Please check your API keys.';
       } else if (errorMessage.includes('500')) {
         errorMessage = 'AI service is temporarily unavailable. Please try again in a few moments.';
       }
@@ -163,6 +116,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenera
       toast.error(errorMessage);
     } finally {
       setIsLocalLoading(false);
+      setIsLoading(false); // Clear parent loading state
     }
   };
 
@@ -171,6 +125,29 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenera
       e.preventDefault();
       handleGenerate();
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setInput(value);
+    
+    // Generate enhanced prompt suggestion in real-time
+    if (value.trim() && value.length > 10) {
+      const enhanced = quickEnhancePrompt(value, generationType);
+      if (enhanced !== value) {
+        setEnhancedPrompt(enhanced);
+        setShowEnhancement(true);
+      } else {
+        setShowEnhancement(false);
+      }
+    } else {
+      setShowEnhancement(false);
+    }
+  };
+
+  const applyEnhancement = () => {
+    setInput(enhancedPrompt);
+    setShowEnhancement(false);
   };
 
   return (
@@ -197,7 +174,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenera
         <div className="relative">
           <textarea
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             placeholder={`Describe the ${generationType} you want to create...\n\nFor ${generationType === 'icons' ? 'icons: "A set of minimalist e-commerce icons including cart, search, user profile, heart, and payment"' : 'UI: "A modern login form with gradient background, social login buttons, and smooth animations"'}`}
             className="w-full p-4 pr-16 border border-input bg-background text-foreground rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent min-h-[120px] text-base placeholder:text-muted-foreground"
@@ -212,29 +189,49 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenera
           </Button>
         </div>
         
+        {/* AI Prompt Enhancement Suggestion */}
+        {showEnhancement && !isLocalLoading && (
+          <div className="mt-3 p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <div className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                  ✨ AI Enhanced Suggestion
+                </div>
+                <div className="text-sm text-blue-800 dark:text-blue-200 mb-2">
+                  {enhancedPrompt}
+                </div>
+                <button
+                  onClick={applyEnhancement}
+                  className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md transition-colors"
+                >
+                  Use Enhanced Prompt
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="text-xs text-muted-foreground mt-2">
           Press Enter to send, Shift+Enter for new line
           <br />
           <span className="text-blue-600 dark:text-blue-400">
-            💡 For better results use: Claude 3.5 Sonnet, GPT-4o, Gemini Pro, or DeepSeek V3
+            💡 For best results, use latest models: GPT-4o, Claude 3.5 Sonnet, Gemini Pro, or DeepSeek V3
           </span>
         </div>
 
-        {/* Loading Animation - Show directly here when generating */}
-        {isLocalLoading && (
+        {/* Loading Animation - Show only for icons */}
+        {isLocalLoading && generationType === 'icons' && (
           <div className="mt-6 p-6 bg-muted/50 border border-border rounded-xl">
             <div className="flex items-center justify-center mb-4">
               <Spinner />
             </div>
             <div className="text-center">
               <h3 className="text-lg font-semibold text-foreground mb-2">
-                {generationType === 'icons' ? '🎨 Generating Icons...' : '⚛️ Creating React Component...'}
+                🎨 Generating Icons...
               </h3>
               <p className="text-muted-foreground">
-                {generationType === 'icons' 
-                  ? 'Crafting beautiful SVG icons for your project...' 
-                  : 'Building your custom React component...'
-                }
+                Crafting beautiful SVG icons for your project...
               </p>
               <div className="mt-3">
                 <div className="w-full bg-muted rounded-full h-2">

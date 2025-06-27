@@ -1,12 +1,10 @@
 import { 
   GenerationRequest, 
   GenerationResponse, 
-  generateUIWithOpenRouter, 
   generateIconsWithOpenRouter,
-  generateWithCoordinatedAI,
   enhanceWithHuggingFace
 } from './aiServices';
-import { generateIconsWithGemini, generateUIWithGemini } from './gemini';
+import { generateIconsWithGemini } from './gemini';
 
 export type AIProvider = 'deepseek' | 'openrouter' | 'gemini' | 'auto';
 
@@ -35,92 +33,7 @@ const hasApiKey = (provider: string): boolean => {
   return false;
 };
 
-export const generateUIWithAI = async (input: AIServiceRequest): Promise<GenerationResponse> => {
-  const { provider, type = 'ui', ...generationInput } = input;
-
-  // Use coordinated AI for better results
-  if (type === 'icons') {
-    return generateIconsWithAI({ ...input, provider });
-  }
-
-  // Auto mode: try providers in order of preference for UI
-  if (provider === 'auto') {
-    // Try OpenRouter first for UI generation
-    if (hasApiKey('openrouter')) {
-      console.log('🚀 Using OpenRouter DeepSeek V3 for UI generation...');
-      const openrouterResult = await generateUIWithOpenRouter(generationInput);
-      if (openrouterResult.success) {
-        return openrouterResult;
-      }
-      console.log('OpenRouter failed, trying Gemini...');
-    }
-
-    // Try Gemini as fallback
-    if (hasApiKey('gemini')) {
-      console.log('Using Gemini as fallback for UI generation...');
-      const geminiResult = await generateUIWithGemini(generationInput);
-      if (geminiResult.success) {
-        return geminiResult;
-      }
-      console.log('Gemini failed, trying Hugging Face...');
-    }
-
-    // Fallback to Hugging Face
-    if (hasApiKey('huggingface')) {
-      console.log('Using Hugging Face DeepSeek as final fallback...');
-      const hfResult = await enhanceWithHuggingFace(generationInput);
-      if (hfResult.success) {
-        return hfResult;
-      }
-    }
-
-    return {
-      html: '',
-      success: false,
-      error: 'Please add your API keys in Settings to use AI generation features'
-    };
-  }
-
-  // Use specific provider
-  switch (provider) {
-    case 'openrouter':
-      if (!hasApiKey('openrouter')) {
-        return {
-          html: '',
-          success: false,
-          error: 'Please add your OpenRouter API key in Settings'
-        };
-      }
-      return generateUIWithOpenRouter(generationInput);
-
-    case 'gemini':
-      if (!hasApiKey('gemini')) {
-        return {
-          html: '',
-          success: false,
-          error: 'Please add your Gemini API key in Settings'
-        };
-      }
-      return generateUIWithGemini(generationInput);
-
-    case 'deepseek':
-      if (!hasApiKey('huggingface')) {
-        return {
-          html: '',
-          success: false,
-          error: 'Please add your Hugging Face API key in Settings (required for DeepSeek)'
-        };
-      }
-      return enhanceWithHuggingFace(generationInput);
-
-    default:
-      return {
-        html: '',
-        success: false,
-        error: 'Invalid AI provider specified'
-      };
-  }
-};
+// This service ONLY handles icon generation - UI generation is in aiServices.ts
 
 // Icon generation with AI coordination
 export const generateIconsWithAI = async (input: AIServiceRequest): Promise<GenerationResponse> => {
@@ -131,29 +44,43 @@ export const generateIconsWithAI = async (input: AIServiceRequest): Promise<Gene
     // Try OpenRouter first for icon generation
     if (hasApiKey('openrouter')) {
       console.log('🚀 Using DeepSeek V3 through OpenRouter for icon generation...');
-      const openrouterResult = await generateIconsWithOpenRouter(generationInput);
-      if (openrouterResult.success) {
-        return openrouterResult;
+      try {
+        const openrouterResult = await generateIconsWithOpenRouter(generationInput);
+        if (openrouterResult.success) {
+          return openrouterResult;
+        }
+        console.log('OpenRouter failed, trying Gemini fallback...');
+      } catch (error) {
+        console.error('OpenRouter error:', error);
+        console.log('OpenRouter error, trying Gemini fallback...');
       }
-      console.log('OpenRouter failed, trying Gemini...');
     }
 
-    // Try Gemini as fallback
+    // Try Gemini as primary fallback (always available)
     if (hasApiKey('gemini')) {
-      console.log('Using Gemini as fallback for icon generation...');
-      const geminiResult = await generateIconsWithGemini(generationInput);
-      if (geminiResult.success) {
-        return geminiResult;
+      console.log('🔵 Using Gemini as fallback for icon generation...');
+      try {
+        const geminiResult = await generateIconsWithGemini(generationInput);
+        if (geminiResult.success) {
+          return geminiResult;
+        }
+        console.log('Gemini failed, trying Hugging Face...');
+      } catch (error) {
+        console.error('Gemini error:', error);
+        console.log('Gemini error, trying Hugging Face...');
       }
-      console.log('Gemini failed, trying Hugging Face...');
     }
 
-    // Fallback to Hugging Face
+    // Final fallback to Hugging Face
     if (hasApiKey('huggingface')) {
-      console.log('Using Hugging Face as final fallback for icon generation...');
-      const hfResult = await enhanceWithHuggingFace(generationInput);
-      if (hfResult.success) {
-        return hfResult;
+      console.log('🤗 Using Hugging Face as final fallback for icon generation...');
+      try {
+        const hfResult = await enhanceWithHuggingFace(generationInput);
+        if (hfResult.success) {
+          return hfResult;
+        }
+      } catch (error) {
+        console.error('Hugging Face error:', error);
       }
     }
 

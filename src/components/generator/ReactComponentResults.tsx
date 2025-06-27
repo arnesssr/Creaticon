@@ -25,6 +25,8 @@ import {
 // Import our preview components
 import ComponentPreview from '../react-preview/ComponentPreview';
 import PropsEditor from '../react-preview/PropsEditor';
+import EditorLayout from '../code-editor/EditorLayout';
+import RealTimeCodeEditor from '../code-editor/RealTimeCodeEditor';
 import { exportComponent, ExportOptions } from '@/lib/componentProcessor';
 import { componentLibraryService } from '@/lib/componentLibrary';
 import { componentVariantsService } from '@/lib/componentVariants';
@@ -47,7 +49,7 @@ const ReactComponentResults: React.FC<ReactComponentResultsProps> = ({ component
     return defaultProps;
   });
 
-  const [activeTab, setActiveTab] = useState<'preview' | 'code' | 'export'>('preview');
+  const [activeTab, setActiveTab] = useState<'editor' | 'export'>('editor');
   const [exportOptions, setExportOptions] = useState<ExportOptions>({
     format: 'tsx',
     includePropTypes: false,
@@ -187,26 +189,58 @@ const ReactComponentResults: React.FC<ReactComponentResultsProps> = ({ component
         </CardHeader>
       </Card>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Preview Panel */}
-        <div className="lg:col-span-2">
-          <ComponentPreview
-            component={component}
-            currentProps={currentProps}
-            onPropsChange={setCurrentProps}
-          />
-        </div>
+      {/* Main Content Tabs */}
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="editor">✍️ Live Editor</TabsTrigger>
+          <TabsTrigger value="export">📦 Export</TabsTrigger>
+        </TabsList>
 
-        {/* Props Editor Panel */}
-        <div className="space-y-6">
-          <PropsEditor
-            props={component.props}
-            currentValues={currentProps}
-            onChange={setCurrentProps}
-          />
 
-          {/* Quick Actions */}
+        {/* Live Editor Tab */}
+        <TabsContent value="editor" className="space-y-0">
+          <div className="h-[80vh]">
+            <RealTimeCodeEditor
+              initialPrompt={component.description}
+              onCodeChange={(code) => {
+                // Here you could update the component code if needed
+                console.log('Code updated:', code);
+              }}
+              theme="dark"
+            />
+          </div>
+        </TabsContent>
+
+        {/* Export Tab */}
+        <TabsContent value="export" className="space-y-0">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            {/* Export Options Panel */}
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="w-5 h-5" />
+                    Export Options
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Button onClick={downloadComponent} className="flex items-center gap-2">
+                      <Download className="w-4 h-4" />
+                      Download Component
+                    </Button>
+                    <Button onClick={downloadCompletePackage} className="flex items-center gap-2">
+                      <Package className="w-4 h-4" />
+                      Export Package
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Actions Panel */}
+            <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -360,7 +394,9 @@ const ReactComponentResults: React.FC<ReactComponentResultsProps> = ({ component
             </CardContent>
           </Card>
         </div>
-      </div>
+        </div>
+      </TabsContent>
+      </Tabs>
 
       {/* Component Details */}
       <Card>
