@@ -1,6 +1,8 @@
 # Creaticon 🎨
 
-![Creaticon - AI-Powered Design Studio](https://github.com/user-attachments/assets/your-image-id-here)
+![Creaticon - AI-Powered Design Studio](./assets/screenshot.png)
+
+*AI-Powered Design Studio for generating beautiful UI components and icon packs*
 
 ## Overview
 
