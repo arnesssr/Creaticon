@@ -300,17 +300,18 @@ export const generateUIWithOpenRouter = async (input: GenerationRequest): Promis
 const createOpenRouterIconPrompt = (input: GenerationRequest): string => {
   return `Create a complete HTML icon pack for: "${input.projectDescription}"
 
-Requirements:
-- 15-20 relevant SVG icons
+STRICT Requirements:
+- EXACTLY 20 SVG icons (no more, no less)
 - Style: ${input.stylePreference}
 - Colors: ${input.colorScheme || 'modern palette'}
-- Icons: navigation, actions, content, communication, status
+- Categories: navigation (4), actions (6), content (4), communication (3), status (3)
 - 24x24px base size with data-icon-name attributes
 - Embedded CSS with hover effects
-- Responsive grid layout
+- Responsive grid layout organized by category
 
+IMPORTANT: Create exactly 20 icons total. Do not exceed this limit.
 Return ONLY complete HTML starting with <!DOCTYPE html> and ending with </html>.
-No explanations or markdown. Make it fast and beautiful!`;
+No explanations or markdown. Make it fast and beautiful!
 };
 
 // Enhanced UI generation prompt for DeepSeek V3

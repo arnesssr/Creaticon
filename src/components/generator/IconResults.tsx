@@ -26,16 +26,20 @@ const IconResults: React.FC<IconResultsProps> = ({ icons }) => {
     );
   }
 
-  const downloadIcon = (icon: ExtractedIcon, color?: string) => {
+  const downloadIcon = (icon: ExtractedIcon, useCurrentSettings = false) => {
     let svgContent = icon.svg;
-    if (color) {
-      // Simple color replacement - in production, you'd want more sophisticated SVG color manipulation
-      svgContent = svgContent.replace(/fill="[^"]*"/g, `fill="${color}"`);
-      svgContent = svgContent.replace(/stroke="[^"]*"/g, `stroke="${color}"`);
+    
+    if (useCurrentSettings) {
+      // Apply current preview color and size
+      svgContent = applyColorAndSizeToSVG(icon.svg, selectedColor, selectedSize);
     }
     
     const blob = new Blob([svgContent], { type: 'image/svg+xml' });
-    saveAs(blob, `${icon.name}.svg`);
+    const filename = useCurrentSettings 
+      ? `${icon.name}-${selectedSize}px-${selectedColor.replace('#', '')}.svg`
+      : `${icon.name}.svg`;
+    
+    saveAs(blob, filename);
     toast.success(`Downloaded ${icon.name}`);
   };
 
@@ -56,9 +60,46 @@ const IconResults: React.FC<IconResultsProps> = ({ icons }) => {
   };
 
   const applyColorToSVG = (svg: string, color: string) => {
-    return svg
-      .replace(/fill="[^"]*"/g, `fill="${color}"`)
-      .replace(/stroke="[^"]*"/g, `stroke="${color}"`);
+    // More comprehensive color replacement that handles different SVG attributes
+    let modifiedSVG = svg;
+    
+    // Replace fill attributes
+    modifiedSVG = modifiedSVG.replace(/fill="[^"]*"/g, `fill="${color}"`);
+    modifiedSVG = modifiedSVG.replace(/fill='[^']*'/g, `fill='${color}'`);
+    
+    // Replace stroke attributes
+    modifiedSVG = modifiedSVG.replace(/stroke="[^"]*"/g, `stroke="${color}"`);
+    modifiedSVG = modifiedSVG.replace(/stroke='[^']*'/g, `stroke='${color}'`);
+    
+    // Handle CSS style attributes
+    modifiedSVG = modifiedSVG.replace(/fill:[^;"'}]+/g, `fill:${color}`);
+    modifiedSVG = modifiedSVG.replace(/stroke:[^;"'}]+/g, `stroke:${color}`);
+    
+    // Handle CSS variables and currentColor
+    modifiedSVG = modifiedSVG.replace(/currentColor/g, color);
+    
+    return modifiedSVG;
+  };
+  
+  const applySizeToSVG = (svg: string, size: number) => {
+    let modifiedSVG = svg;
+    
+    // Remove existing width and height attributes
+    modifiedSVG = modifiedSVG.replace(/width="[^"]*"/g, '');
+    modifiedSVG = modifiedSVG.replace(/height="[^"]*"/g, '');
+    modifiedSVG = modifiedSVG.replace(/width='[^']*'/g, '');
+    modifiedSVG = modifiedSVG.replace(/height='[^']*'/g, '');
+    
+    // Add new width and height attributes
+    modifiedSVG = modifiedSVG.replace('<svg', `<svg width="${size}" height="${size}"`);
+    
+    return modifiedSVG;
+  };
+  
+  const applyColorAndSizeToSVG = (svg: string, color: string, size: number) => {
+    let modifiedSVG = applySizeToSVG(svg, size);
+    modifiedSVG = applyColorToSVG(modifiedSVG, color);
+    return modifiedSVG;
   };
 
   return (
@@ -152,7 +193,7 @@ const IconResults: React.FC<IconResultsProps> = ({ icons }) => {
                 className="flex items-center justify-center"
                 style={{ width: `${selectedSize}px`, height: `${selectedSize}px` }}
                 dangerouslySetInnerHTML={{ 
-                  __html: applyColorToSVG(icon.svg, selectedColor)
+                  __html: applyColorAndSizeToSVG(icon.svg, selectedColor, selectedSize)
                 }} 
               />
             </div>
@@ -164,7 +205,7 @@ const IconResults: React.FC<IconResultsProps> = ({ icons }) => {
               </p>
               <div className="flex gap-1">
                 <Button 
-                  onClick={() => downloadIcon(icon, selectedColor)}
+                  onClick={() => downloadIcon(icon, true)}
                   size="sm"
                   className="flex-1 text-xs"
                 >

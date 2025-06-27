@@ -239,15 +239,16 @@ export const generateUIWithHuggingFace = async (input: GenerationRequest): Promi
 const generateIconPackPrompt = (input: UserInput): string => `
 Create a complete HTML icon pack for: "${input.projectDescription}"
 
-Requirements:
-- 12-18 relevant SVG icons
+STRICT Requirements:
+- EXACTLY 20 SVG icons (no more, no less)
 - Style: ${input.stylePreference} 
 - Colors: ${input.colorScheme || 'modern palette'}
-- Categories: navigation, actions, content, status
+- Categories: navigation (4), actions (6), content (4), communication (3), status (3)
 - 24x24px icons with data-name attributes
 - Embedded CSS with hover effects
-- Grid layout
+- Grid layout organized by category
 
+IMPORTANT: Create exactly 20 icons total. Do not exceed this limit.
 Return ONLY complete HTML from <!DOCTYPE html> to </html>.
 No explanations. Fast and beautiful!`;
 
