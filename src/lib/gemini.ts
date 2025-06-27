@@ -16,7 +16,28 @@ try {
   console.warn('Hugging Face Inference not available:', error);
 }
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+// Helper function to get API key from environment or localStorage
+const getGeminiApiKey = (): string | null => {
+  // First try environment variable
+  const envKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (envKey) return envKey;
+  
+  // Then try localStorage
+  try {
+    const savedKeys = localStorage.getItem('creaticon_api_keys');
+    if (savedKeys) {
+      const parsed = JSON.parse(savedKeys);
+      return parsed.gemini || null;
+    }
+  } catch (error) {
+    console.error('Failed to parse saved API keys:', error);
+  }
+  
+  return null;
+};
+
+// Initialize with a placeholder, will be updated when needed
+let genAI: GoogleGenerativeAI | null = null;
 
 export interface PageDefinition {
   name: string;
@@ -63,6 +84,14 @@ export interface GenerationResponse {
 // New intelligent icon generation function
 export const generateIconsWithGemini = async (input: GenerationRequest): Promise<GenerationResponse> => {
   try {
+    const apiKey = getGeminiApiKey();
+    if (!apiKey) {
+      throw new Error('Please add your Gemini API key in Settings to use this feature');
+    }
+    
+    // Initialize Gemini AI with the API key
+    genAI = new GoogleGenerativeAI(apiKey);
+    
     console.log('Generating intelligent icon pack with Gemini API...');
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
@@ -101,6 +130,14 @@ export const generateIconsWithGemini = async (input: GenerationRequest): Promise
 
 export const generateUIWithGemini = async (input: GenerationRequest): Promise<GenerationResponse> => {
   try {
+    const apiKey = getGeminiApiKey();
+    if (!apiKey) {
+      throw new Error('Please add your Gemini API key in Settings to use this feature');
+    }
+    
+    // Initialize Gemini AI with the API key
+    genAI = new GoogleGenerativeAI(apiKey);
+    
     console.log('Generating UI with Gemini API...');
     // Use gemini-1.5-flash for free tier instead of gemini-pro
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });

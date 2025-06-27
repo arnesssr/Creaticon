@@ -46,7 +46,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenera
           projectType: 'icon-pack',
           stylePreference: 'modern',
           colorScheme: 'contextual and beautiful gradients',
-          provider: 'openrouter' // Use OpenRouter with DeepSeek V3
+          provider: 'auto' // Use best available provider
         });
 
         console.log('✅ Icon Generation Response:', response);
@@ -68,7 +68,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ generationType, setGenera
           projectType: 'web-app',
           stylePreference: 'modern',
           colorScheme: 'professional blue and purple gradients',
-          provider: 'openrouter' // Use OpenRouter with DeepSeek V3
+          provider: 'auto' // Use best available provider
         });
 
         console.log('✅ UI Generation Response:', response);
