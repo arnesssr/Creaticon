@@ -340,7 +340,7 @@ IMPORTANT:
 - No explanations or markdown formatting
 - Ensure all SVG icons have proper viewBox and are scalable
 - Make the design modern and visually appealing
-  }
+`;
 };
 
 // Enhanced DeepSeek icon generation through Hugging Face API (without streaming client)
