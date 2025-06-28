@@ -6,8 +6,7 @@
 
 ## Overview
 
-Creaticon is a powerful AI-driven tool for generating beautiful UI components and icon packs. Simply describe what you want, and our AI will create professional-quality designs ready for download and use in your projects.
-
+Creaticon is a simple AI-driven tool for generating beautiful UI components and icon packs.  ( note: still under developmentl)
 ### ✨ Key Features
 
 #### 🎨 Icon Generation
@@ -227,7 +226,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ by the open source community**
+**Made with ❤️ for the open source community**
 
 *Star ⭐ this repo if you find it useful!*
 
